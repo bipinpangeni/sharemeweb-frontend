@@ -282,7 +282,7 @@ async function startReceiverFirstSession() {
     socket.emit('create-session', { sessionId, mode: 'receiver-first' });
 
     /* Receiver creates the WebRTC offer */
-    rtcReceive = new ShareMeWebRTC({
+    rtcReceive = new ShareDropRTC({
       onProgress:    updateReceiveProgress,
       onComplete:    handleFileComplete,
       onStatus:      (msg, type) => setStatus(UI.statusReceive, msg, type),
@@ -297,6 +297,7 @@ async function startReceiverFirstSession() {
     const sessionURL = `${window.location.origin}/?s=${sessionId}&mode=rf`;
 
     /* Show QR on receiver side */
+    UI.myQRSection.style.display = 'block';
     UI.myQRSection.classList.add('visible');
     await generateQR(sessionURL, UI.myQRContainer, 200);
     UI.mySessionLink.textContent = sessionURL;
