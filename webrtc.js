@@ -27,7 +27,7 @@ const ICE_SERVERS = [
 /* ═══════════════════════════════════════════════════════════════
    ShareMeWebRTC — manages ONE WebRTC peer connection
    ═══════════════════════════════════════════════════════════════ */
-class ShareMeWebRTC {
+class ShareDropRTC {
   constructor(opts = {}) {
     this.onProgress     = opts.onProgress     || (() => {});
     this.onComplete     = opts.onComplete     || (() => {});
@@ -357,5 +357,5 @@ class MultiSender {
   destroyAll()       { this._peers.forEach(r => r.destroy()); this._peers.clear(); }
 }
 
-window.ShareMeWebRTC = ShareMeWebRTC;
+window.ShareDropRTC = ShareDropRTC;
 window.MultiSender  = MultiSender;
