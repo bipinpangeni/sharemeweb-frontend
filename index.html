@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ShareMeWeb — Free P2P File Sharing via QR Code | No Upload, No Storage</title>
+  <meta name="description" content="ShareMeWeb lets you share files directly between devices using WebRTC and QR codes. No uploads, no storage, no size limits. 100% private peer-to-peer transfer." />
+  <meta name="keywords" content="file sharing, QR code file transfer, P2P file sharing, WebRTC transfer, no upload file share, free file sharing, browser file transfer" />
+  <meta name="robots" content="index, follow" />
+  <meta name="author" content="ShareMeWeb" />
+  <meta property="og:title"       content="ShareMeWeb — Free P2P File Sharing via QR Code" />
+  <meta property="og:description" content="Share files instantly between devices. No uploads, no servers, 100% private." />
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://sharemeweb.com/" />
+  <meta name="twitter:card"       content="summary_large_image" />
+  <meta name="twitter:title"      content="ShareMeWeb — Free P2P File Sharing" />
+  <meta name="twitter:description" content="Scan a QR code. Transfer files instantly. No cloud. No storage. 100% private." />
+  <!-- Signaling server URL — update before deploying -->
+  <meta name="signaling-url" content="https://api.sharemeweb.com" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="canonical" href="https://sharemeweb.com/" />
+  <!-- Preconnect to fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <!-- ================================================
+       GOOGLE ADSENSE — Replace ca-pub-XXXXXXXXXXXXXXXX
+       with your real Publisher ID after approval
+       ================================================ -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-XXXXXXXXXXXXXXXX" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════
+       HEADER
+       ═══════════════════════════════════════════════════════ -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="/" class="logo" aria-label="ShareMeWeb Home">
+        <span class="logo-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+            <polyline points="16 6 12 2 8 6"/>
+            <line x1="12" y1="2" x2="12" y2="15"/>
+          </svg>
+        </span>
+        Share<span>MeWeb</span>
+      </a>
+      <nav aria-label="Main navigation">
+        <ul class="nav-links" id="nav-links">
+          <li><a href="/"             class="active">Home</a></li>
+          <li><a href="how-it-works.html">How It Works</a></li>
+          <li><a href="about.html">About</a></li>
+          <li><a href="contact.html">Contact</a></li>
+          <li><a href="/" class="nav-cta">Share a File</a></li>
+        </ul>
+      </nav>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ═══════════════════════════════════════════════════════
+         AD SLOT — TOP BANNER
+         ═══════════════════════════════════════════════════════ -->
+    <!-- ADSENSE_TOP -->
+    <div class="container">
+      <div class="ad-slot-wrap">
+      <!-- ACTIVATE AFTER ADSENSE APPROVAL: remove comment tags below -->
+      <!--
+      <ins class="adsbygoogle ad-top"
+           style="display:block"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="1111111111"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+      <!-- PLACEHOLDER (remove this div after AdSense approval) -->
+      <div class="ad-slot ad-top" aria-label="Advertisement"></div>
+    </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         HERO
+         ═══════════════════════════════════════════════════════ -->
+    <section class="hero" aria-labelledby="hero-title">
+      <div class="container">
+        <div class="hero-badge">⚡ Instant • Encrypted • No Upload Required</div>
+        <h1 id="hero-title">Share Files Instantly<br>with a QR Code</h1>
+        <p>Transfer any file directly between devices — no cloud, no account, no size limit. Your files never touch our servers.</p>
+
+        <!-- ── Transfer Card ──────────────────────────────── -->
+        <div class="transfer-card" role="main">
+          <div class="tab-bar" role="tablist">
+            <button class="tab-btn active" id="tab-send" role="tab" aria-selected="true"  aria-controls="panel-send">
+              📤 Send File
+            </button>
+            <button class="tab-btn"        id="tab-receive" role="tab" aria-selected="false" aria-controls="panel-receive">
+              📥 Receive File
+            </button>
+          </div>
+
+          <!-- ── SEND PANEL ─────────────────────────────── -->
+          <div class="tab-panel active" id="panel-send" role="tabpanel">
+            <!-- Upload Zone -->
+            <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Click or drag a file to upload">
+              <input type="file" id="file-input" aria-hidden="true" />
+              <div class="upload-icon">📂</div>
+              <h3>Drop your file here</h3>
+              <p>or click to browse — any file type, any size</p>
+            </div>
+
+            <!-- File Info Strip -->
+            <div class="file-info-strip" id="file-info-strip" aria-live="polite">
+              <span class="file-icon" id="file-icon">📁</span>
+              <div class="file-meta">
+                <div class="file-name" id="file-name">filename.ext</div>
+                <div class="file-size" id="file-size">0 KB</div>
+              </div>
+              <button class="btn-clear" id="btn-clear" aria-label="Remove selected file">✕</button>
+            </div>
+
+            <!-- Generate Button -->
+            <button class="btn btn-primary btn-lg btn-block" id="btn-generate" disabled>
+              Generate QR Code &amp; Share Link →
+            </button>
+
+            <!-- QR Code Section (shown after generation) -->
+            <div class="qr-section fade-in" id="qr-section">
+              <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
+                Have the receiver scan this QR code or open the link below
+              </p>
+              <div class="qr-wrapper" aria-label="QR Code for file sharing">
+                <div id="qr-container"></div>
+              </div>
+              <div class="session-link-box">
+                <span id="session-link" aria-label="Session link"></span>
+                <button class="btn-copy" id="btn-copy">Copy</button>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div id="status-send" role="status" aria-live="polite"></div>
+
+            <!-- ── PEER LIST (multi-receiver) ─────────────── -->
+            <div class="peer-list-section" id="peer-list" style="display:none;margin-top:20px;">
+              <div class="peer-list-header">
+                <span>👥 Connected Receivers</span>
+                <span id="peer-count" style="font-size:.8rem;color:var(--text-muted);"></span>
+              </div>
+              <!-- Peer cards inserted here by app.js -->
+            </div>
+
+            <!-- Progress (single / receiver-first mode) -->
+            <div class="transfer-progress" id="progress-send">
+              <div class="progress-header">
+                <span class="progress-label">Sending…</span>
+                <span class="progress-pct" id="progress-pct-send">0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-bar-send"></div>
+              </div>
+              <div class="progress-stats">
+                <span id="progress-sent">0 B / 0 B</span>
+                <span id="progress-speed">Speed: —</span>
+                <span id="progress-eta">ETA: —</span>
+              </div>
+            </div>
+          </div>
+          <!-- END SEND PANEL -->
+
+          <!-- ── RECEIVE PANEL ──────────────────────────── -->
+          <div class="tab-panel" id="panel-receive" role="tabpanel">
+            <div class="scan-area">
+              <div class="scan-icon">📱</div>
+              <h3>Receive a file</h3>
+              <p style="font-size:.9rem;margin-bottom:20px;">Choose how you want to receive — scan the sender's QR, or show <em>your own</em> QR for the sender to scan.</p>
+
+              <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;">
+                <button class="btn btn-primary btn-lg" id="btn-scan-qr">
+                  📷 Scan Sender's QR
+                </button>
+                <button class="btn btn-secondary btn-lg" id="btn-show-my-qr">
+                  📱 Show My QR Code
+                </button>
+              </div>
+              <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;">
+                <strong>Scan Sender's QR</strong> — sender already has the file ready<br>
+                <strong>Show My QR</strong> — you go first, sender picks the file after scanning
+              </p>
+            </div>
+
+            <!-- Receiver-first: show MY QR code for sender to scan -->
+            <div class="qr-section fade-in" id="my-qr-section" style="display:none;margin-top:16px;">
+              <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
+                Show this QR to the <strong>sender</strong> — they scan it and pick the file
+              </p>
+              <div class="qr-wrapper">
+                <div id="my-qr-container"></div>
+              </div>
+              <div class="session-link-box">
+                <span id="my-session-link"></span>
+                <button class="btn-copy" id="btn-copy-my-link">Copy</button>
+              </div>
+            </div>
+
+            <!-- Camera view -->
+            <div id="camera-view" role="region" aria-label="Camera QR scanner">
+              <video id="camera-video" autoplay playsinline muted></video>
+              <div class="scan-overlay">
+                <div class="scan-frame" aria-hidden="true"></div>
+              </div>
+              <button class="btn btn-secondary btn-sm" id="btn-camera-stop" style="position:absolute;top:12px;right:12px;">
+                ✕ Stop Camera
+              </button>
+            </div>
+
+            <div class="or-divider" aria-hidden="true">or paste link</div>
+
+            <div class="link-input-group">
+              <input
+                type="url"
+                class="link-input"
+                id="link-input"
+                placeholder="Paste share link here… (e.g., https://sharemeweb.com/?s=abc123)"
+                aria-label="Paste session link"
+              />
+              <button class="btn btn-primary" id="btn-connect">Connect →</button>
+            </div>
+
+            <!-- Status -->
+            <div id="status-receive" role="status" aria-live="polite"></div>
+
+            <!-- Incoming file card -->
+            <div class="incoming-file" id="incoming-file" aria-live="polite">
+              <h3 id="incoming-name">file.ext</h3>
+              <p id="incoming-size">0 KB</p>
+            </div>
+
+            <!-- Receive progress -->
+            <div class="transfer-progress" id="progress-receive">
+              <div class="progress-header">
+                <span class="progress-label">Receiving…</span>
+                <span class="progress-pct" id="progress-pct-receive">0%</span>
+              </div>
+              <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="progress-bar-receive"></div>
+              </div>
+              <div class="progress-stats">
+                <span id="progress-speed-r">Speed: —</span>
+                <span id="progress-eta-r">ETA: —</span>
+              </div>
+            </div>
+
+            <!-- Download button -->
+            <button class="btn btn-success btn-lg btn-block hidden" id="btn-download">
+              ⬇️ Download File
+            </button>
+          </div>
+          <!-- END RECEIVE PANEL -->
+        </div>
+        <!-- END Transfer Card -->
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         AD SLOT — MIDDLE
+         ═══════════════════════════════════════════════════════ -->
+    <!-- ADSENSE_MIDDLE -->
+    <div class="container">
+      <div class="ad-slot-wrap">
+      <!--
+      <ins class="adsbygoogle ad-middle"
+           style="display:block"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="2222222222"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+      <div class="ad-slot ad-middle" aria-label="Advertisement"></div>
+    </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════
+         HOW IT WORKS (summary)
+         ═══════════════════════════════════════════════════════ -->
+    <section class="how-it-works" aria-labelledby="hiw-title">
+      <div class="container">
+        <p class="section-label">Simple Process</p>
+        <h2 class="section-title" id="hiw-title">How ShareMeWeb Works</h2>
+        <p class="section-sub">No accounts. No uploads. Files travel directly from your browser to theirs.</p>
+
+        <div class="steps-grid">
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <span class="step-emoji">📂</span>
+            <h3>Select a File</h3>
+            <p>Choose any file from your device — documents, photos, videos, archives. Any size.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <span class="step-emoji">🔗</span>
+            <h3>Get a Share Link</h3>
+            <p>We instantly create a unique session and generate a QR code + shareable link.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <span class="step-emoji">📱</span>
+            <h3>Receiver Scans QR</h3>
+            <p>The receiver scans your QR code or opens the link — no app download needed.</p>
+          </div>
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <span class="step-emoji">⚡</span>
+            <h3>Direct Transfer</h3>
+            <p>Files stream peer-to-peer at full speed, encrypted end-to-end. We never see your data.</p>
+          </div>
+        </div>
+
+        <div class="text-center mt-8">
+          <a href="how-it-works.html" class="btn btn-secondary">Learn the full technical details →</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         FEATURES / TRUST
+         ═══════════════════════════════════════════════════════ -->
+    <section class="features" aria-labelledby="features-title">
+      <div class="container">
+        <p class="section-label">Why ShareMeWeb</p>
+        <h2 id="features-title">Private, Fast, and Free</h2>
+        <div class="features-grid">
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">🔒</div>
+            <div>
+              <h4>End-to-End Encrypted</h4>
+              <p>WebRTC DTLS encryption is built in — your file is encrypted before it leaves your browser.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">☁️</div>
+            <div>
+              <h4>Zero Storage</h4>
+              <p>Files are never stored on any server. They go directly from sender to receiver's browser.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">📏</div>
+            <div>
+              <h4>No Size Limits</h4>
+              <p>Transfer files of any size — limited only by available RAM on both devices.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">🆓</div>
+            <div>
+              <h4>Completely Free</h4>
+              <p>No accounts, no subscriptions, no fees. Always free for everyone.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">📱</div>
+            <div>
+              <h4>Cross-Platform</h4>
+              <p>Works on any modern browser — Chrome, Firefox, Safari, Edge. No app installation.</p>
+            </div>
+          </div>
+          <div class="feature-item">
+            <div class="feature-icon" aria-hidden="true">⚡</div>
+            <div>
+              <h4>LAN Speed</h4>
+              <p>When both devices are on the same network, transfers happen at local network speeds.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════
+         AD SLOT — FOOTER
+         ═══════════════════════════════════════════════════════ -->
+    <!-- ADSENSE_FOOTER -->
+    <div class="container">
+      <div class="ad-slot-wrap">
+      <!--
+      <ins class="adsbygoogle ad-footer"
+           style="display:block"
+           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-slot="3333333333"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      -->
+      <div class="ad-slot ad-footer" aria-label="Advertisement"></div>
+    </div>
+    </div>
+
+  </main>
+
+  <!-- ═══════════════════════════════════════════════════════
+       FOOTER
+       ═══════════════════════════════════════════════════════ -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="/" class="logo">
+            <span class="logo-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
+                <polyline points="16 6 12 2 8 6"/>
+                <line x1="12" y1="2" x2="12" y2="15"/>
+              </svg>
+            </span>
+            Share<span>MeWeb</span>
+          </a>
+          <p>Instant peer-to-peer file sharing. No uploads, no storage, no limits.</p>
+        </div>
+        <div>
+          <p class="footer-title">Product</p>
+          <ul class="footer-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="how-it-works.html">How It Works</a></li>
+            <li><a href="about.html">About Us</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer-title">Support</p>
+          <ul class="footer-links">
+            <li><a href="contact.html">Contact</a></li>
+            <li><a href="how-it-works.html#faq">FAQ</a></li>
+          </ul>
+        </div>
+        <div>
+          <p class="footer-title">Legal</p>
+          <ul class="footer-links">
+            <li><a href="privacy.html">Privacy Policy</a></li>
+            <li><a href="terms.html">Terms &amp; Conditions</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2025 ShareMeWeb. All rights reserved.</p>
+        <div class="footer-bottom-links">
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ═══════════════════════════════════════════════════════
+       SCRIPTS (order matters)
+       ═══════════════════════════════════════════════════════ -->
+  <!-- QRCode.js for generation -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <!-- jsQR for camera decoding -->
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+  <!-- Socket.io client (matches server version) -->
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <!-- Our modules -->
+  <script src="webrtc.js"></script>
+  <script src="qr.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
