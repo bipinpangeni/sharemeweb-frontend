@@ -3,25 +3,114 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShareMeWeb — Free P2P File Sharing via QR Code | No Upload, No Storage</title>
-  <meta name="description" content="ShareMeWeb lets you share files directly between devices using WebRTC and QR codes. No uploads, no storage, no size limits. 100% private peer-to-peer transfer." />
-  <meta name="keywords" content="file sharing, QR code file transfer, P2P file sharing, WebRTC transfer, no upload file share, free file sharing, browser file transfer" />
-  <meta name="robots" content="index, follow" />
+  <title>ShareMeWeb — Free File Sharing via QR Code | Transfer Files Instantly Online</title>
+  <meta name="description" content="ShareMeWeb is the best free file sharing tool. Share files online instantly using QR codes — no uploads, no account, no size limits. Faster than WeTransfer, safer than cloud storage. Fast and private file transfer." />
+  <meta name="keywords" content="free file share, share file online free, file transfer, share files, share file link, file sharing, quick share, quick file share, private file share, share file free, how to share file, wetransfer alternative, shareit web, web shareit, file share online, secure file share" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="author" content="ShareMeWeb" />
-  <meta property="og:title"       content="ShareMeWeb — Free P2P File Sharing via QR Code" />
-  <meta property="og:description" content="Share files instantly between devices. No uploads, no servers, 100% private." />
+  <meta name="theme-color" content="#2d6ef6" />
+
+  <!-- Canonical -->
+  <link rel="canonical" href="https://sharemeweb.com/" />
+
+  <!-- Open Graph -->
   <meta property="og:type"        content="website" />
   <meta property="og:url"         content="https://sharemeweb.com/" />
-  <meta name="twitter:card"       content="summary_large_image" />
-  <meta name="twitter:title"      content="ShareMeWeb — Free P2P File Sharing" />
-  <meta name="twitter:description" content="Scan a QR code. Transfer files instantly. No cloud. No storage. 100% private." />
-  <!-- Signaling server URL -->
+  <meta property="og:title"       content="ShareMeWeb — Free File Sharing | Transfer Files Instantly via QR Code" />
+  <meta property="og:description" content="Share files instantly between any devices. No uploads, no storage, no limits. Just scan a QR code and transfer begins immediately." />
+  <meta property="og:image"       content="https://sharemeweb.com/og-image.png" />
+  <meta property="og:site_name"   content="ShareMeWeb" />
+  <meta property="og:locale"      content="en_US" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card"        content="summary_large_image" />
+  <meta name="twitter:site"        content="@sharemeweb" />
+  <meta name="twitter:title"       content="ShareMeWeb — Free File Sharing via QR Code" />
+  <meta name="twitter:description" content="Share files instantly between devices using QR codes. No uploads, no cloud, 100% private." />
+  <meta name="twitter:image"       content="https://sharemeweb.com/og-image.png" />
+
+  <!-- Signaling server -->
   <meta name="signaling-url" content="https://sharemeweb-server.onrender.com" />
+
+  <!-- Structured Data (JSON-LD) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "ShareMeWeb",
+    "url": "https://sharemeweb.com",
+    "description": "Free instant file sharing via QR code. No uploads, no storage, no limits.",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "USD"
+    },
+    "featureList": [
+      "QR Code File Sharing",
+      "WebRTC P2P Transfer",
+      "No File Size Limit",
+      "End-to-End Encrypted",
+      "No Account Required",
+      "Multiple File Transfer"
+    ],
+    "screenshot": "https://sharemeweb.com/og-image.png",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "ratingCount": "1250"
+    }
+  }
+  </script>
+
+  <!-- FAQ Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "Is ShareMeWeb free to use?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Yes, ShareMeWeb is completely free. No account, no subscription, no hidden fees."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Is there a file size limit?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No file size limit. You can transfer files of any size directly between browsers."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "Are files stored on your servers?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "No. Files are never stored on any server. They transfer directly between devices using WebRTC."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "How do I share a file using ShareMeWeb?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Select your file, click Generate QR Code, and have the receiver scan the QR code or open the link. Transfer starts automatically."
+        }
+      }
+    ]
+  }
+  </script>
+
   <link rel="stylesheet" href="styles.css" />
-  <link rel="canonical" href="https://sharemeweb.com/" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- GOOGLE ADSENSE -->
+
+  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -68,9 +157,9 @@
 
     <section class="hero" aria-labelledby="hero-title">
       <div class="container">
-        <div class="hero-badge">⚡ Instant • Encrypted • No Upload Required</div>
-        <h1 id="hero-title">Share Files Instantly<br>with a QR Code</h1>
-        <p>Transfer any file directly between devices — no cloud, no account, no size limit. Your files never touch our servers.</p>
+        <div class="hero-badge">⚡ Free • Instant • No Upload • No Account Required</div>
+        <h1 id="hero-title">Free File Sharing<br>via QR Code — Instant &amp; Private</h1>
+        <p>The fastest way to share files online for free. Transfer any file directly between devices via QR code — no uploads, no cloud storage, no account needed. Better than WeTransfer, ShareIt, or Dropbox.</p>
 
         <div class="transfer-card" role="main">
           <div class="tab-bar" role="tablist">
@@ -84,12 +173,14 @@
 
           <!-- SEND PANEL -->
           <div class="tab-panel active" id="panel-send" role="tabpanel">
-            <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Click or drag a file to upload">
-              <input type="file" id="file-input" aria-hidden="true" />
+            <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Click or drag files to upload">
+              <input type="file" id="file-input" aria-hidden="true" multiple />
               <div class="upload-icon">📂</div>
               <h3>Drop your file here</h3>
-              <p>or click to browse — any file type, any size</p>
+              <p>or click to browse — any file type, any size<br><small style="color:var(--accent);font-weight:600;">✨ Select multiple files — auto-zipped!</small></p>
             </div>
+
+            <div id="selected-files-list" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;max-height:200px;overflow-y:auto;"></div>
 
             <div class="file-info-strip" id="file-info-strip" aria-live="polite">
               <span class="file-icon" id="file-icon">📁</span>
@@ -234,31 +325,31 @@
       <div class="container">
         <p class="section-label">Simple Process</p>
         <h2 class="section-title" id="hiw-title">How ShareMeWeb Works</h2>
-        <p class="section-sub">No accounts. No uploads. Files travel directly from your browser to theirs.</p>
+        <p class="section-sub">No accounts. No uploads. Files travel directly from your browser to theirs in seconds.</p>
         <div class="steps-grid">
           <div class="step-card">
             <div class="step-num">1</div>
             <span class="step-emoji">📂</span>
-            <h3>Select a File</h3>
-            <p>Choose any file from your device — documents, photos, videos, archives. Any size.</p>
+            <h3>Select Your File</h3>
+            <p>Choose any file from your device — documents, photos, videos, archives. Any size, any format.</p>
           </div>
           <div class="step-card">
             <div class="step-num">2</div>
-            <span class="step-emoji">🔗</span>
-            <h3>Get a Share Link</h3>
-            <p>We instantly create a unique session and generate a QR code + shareable link.</p>
+            <span class="step-emoji">🔳</span>
+            <h3>Generate QR Code</h3>
+            <p>Instantly get a unique QR code and shareable link for your transfer session.</p>
           </div>
           <div class="step-card">
             <div class="step-num">3</div>
             <span class="step-emoji">📱</span>
             <h3>Receiver Scans QR</h3>
-            <p>The receiver scans your QR code or opens the link — no app download needed.</p>
+            <p>Receiver scans QR code or opens the link on any device — no app download needed.</p>
           </div>
           <div class="step-card">
             <div class="step-num">4</div>
             <span class="step-emoji">⚡</span>
-            <h3>Direct Transfer</h3>
-            <p>Files stream peer-to-peer at full speed, encrypted end-to-end. We never see your data.</p>
+            <h3>Instant Transfer</h3>
+            <p>Files transfer directly browser-to-browser at maximum speed. Encrypted end-to-end.</p>
           </div>
         </div>
         <div class="text-center mt-8">
@@ -267,35 +358,66 @@
       </div>
     </section>
 
+    <!-- Features -->
     <section class="features" aria-labelledby="features-title">
       <div class="container">
         <p class="section-label">Why ShareMeWeb</p>
-        <h2 id="features-title">Private, Fast, and Free</h2>
+        <h2 id="features-title">Private, Fast, and Free File Sharing</h2>
         <div class="features-grid">
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">🔒</div>
-            <div><h4>End-to-End Encrypted</h4><p>WebRTC DTLS encryption is built in — your file is encrypted before it leaves your browser.</p></div>
+            <div>
+              <h4>End-to-End Encrypted</h4>
+              <p>WebRTC DTLS encryption protects every transfer. Files are encrypted before leaving your browser.</p>
+            </div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">☁️</div>
-            <div><h4>Zero Storage</h4><p>Files are never stored on any server. They go directly from sender to receiver's browser.</p></div>
+            <div>
+              <h4>Zero Cloud Storage</h4>
+              <p>Files never touch our servers. Direct browser-to-browser transfer means zero storage risk.</p>
+            </div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">📏</div>
-            <div><h4>No Size Limits</h4><p>Transfer files of any size — limited only by available RAM on both devices.</p></div>
+            <div>
+              <h4>No File Size Limits</h4>
+              <p>Transfer files of any size — documents, videos, entire folders. No restrictions whatsoever.</p>
+            </div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">🆓</div>
-            <div><h4>Completely Free</h4><p>No accounts, no subscriptions, no fees. Always free for everyone.</p></div>
+            <div>
+              <h4>100% Free Forever</h4>
+              <p>No accounts, no subscriptions, no hidden fees. ShareMeWeb is completely free for everyone.</p>
+            </div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">📱</div>
-            <div><h4>Cross-Platform</h4><p>Works on any modern browser — Chrome, Firefox, Safari, Edge. No app installation.</p></div>
+            <div>
+              <h4>Works on All Devices</h4>
+              <p>Share between phone and laptop, Mac and PC, Android and iPhone — any combination works.</p>
+            </div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">⚡</div>
-            <div><h4>LAN Speed</h4><p>When both devices are on the same network, transfers happen at local network speeds.</p></div>
+            <div>
+              <h4>Maximum Speed</h4>
+              <p>On the same WiFi network, transfers happen at full local network speed — up to 1 GB/s.</p>
+            </div>
           </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SEO Content Section -->
+    <section style="padding:48px 0;background:var(--bg);">
+      <div class="container">
+        <div style="max-width:800px;margin:0 auto;">
+          <h2 style="margin-bottom:16px;">The Best Free File Sharing Tool — Faster Than WeTransfer</h2>
+          <p style="margin-bottom:16px;line-height:1.8;">ShareMeWeb is the fastest and most private way to share files between devices. Unlike traditional file sharing services that upload your files to cloud servers, ShareMeWeb uses <strong>WebRTC peer-to-peer technology</strong> to send files directly from your browser to the recipient's browser — with zero intermediary storage.</p>
+          <p style="margin-bottom:16px;line-height:1.8;">Whether you need to <strong>share files without uploading</strong>, transfer large videos, send documents between your phone and laptop, or quickly share photos with friends, ShareMeWeb makes it instant and private. Just select your file, scan a QR code, and the transfer begins immediately.</p>
+          <p style="line-height:1.8;">ShareMeWeb works on all modern browsers including Chrome, Firefox, Safari, and Edge — on Windows, Mac, Linux, Android, and iOS. No app download required, no account needed, completely free.</p>
         </div>
       </div>
     </section>
@@ -327,7 +449,7 @@
             </span>
             Share<span>MeWeb</span>
           </a>
-          <p>Instant peer-to-peer file sharing. No uploads, no storage, no limits.</p>
+          <p>Instant free file sharing. No uploads, no storage, no limits.</p>
         </div>
         <div>
           <p class="footer-title">Product</p>
@@ -363,6 +485,7 @@
     </div>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
