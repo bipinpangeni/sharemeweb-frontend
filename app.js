@@ -566,20 +566,33 @@ function showIncomingFile(name, size) {
 
 function updateReceiveProgress(pct, bytes, speed, total) {
   if (UI.progressReceive) UI.progressReceive.classList.add('visible');
-  if (UI.progressBarR)    UI.progressBarR.style.width = pct + '%';
-  if (UI.progressPctR)    UI.progressPctR.textContent = pct + '%';
-  if (UI.progressSpeedR)  UI.progressSpeedR.textContent = 'Speed: ' + formatSpeed(speed);
-  if (UI.progressETAR)    UI.progressETAR.textContent   = 'ETA: '   + formatETA(total - bytes, speed);
+
+  // Cap at 99% — only jump to 100% when file is FULLY assembled
+  const displayPct = Math.min(pct, 99);
+
+  if (UI.progressBarR)   UI.progressBarR.style.width   = displayPct + '%';
+  if (UI.progressPctR)   UI.progressPctR.textContent   = displayPct + '%';
+  if (UI.progressSpeedR) UI.progressSpeedR.textContent = 'Speed: ' + formatSpeed(speed);
+  if (UI.progressETAR)   UI.progressETAR.textContent   = 'ETA: ' + formatETA(total - bytes, speed);
 }
 
 function handleFileComplete(blob, fileName) {
   downloadBlob_ = blob;
   downloadName_ = fileName;
+
+  // NOW show 100% — file fully assembled and ready to download
+  if (UI.progressBarR)   UI.progressBarR.style.width   = '100%';
+  if (UI.progressPctR)   UI.progressPctR.textContent   = '100%';
+  if (UI.progressSpeedR) UI.progressSpeedR.textContent = '✓ Complete';
+  if (UI.progressETAR)   UI.progressETAR.textContent   = 'Done!';
+
+  // Show download button
   if (UI.btnDownload) {
     UI.btnDownload.classList.remove('hidden');
     UI.btnDownload.classList.add('visible');
   }
-  setStatus(UI.statusReceive, '✓ File received! Downloading automatically…', 'done');
+
+  setStatus(UI.statusReceive, '✓ File received! Click Download to save.', 'done');
   downloadBlob(blob, fileName); // auto-download
 }
 
