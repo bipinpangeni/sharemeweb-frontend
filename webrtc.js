@@ -339,7 +339,7 @@ class MultiSender {
 
   /** Add a new receiver peer */
   addPeer(peerId) {
-    const rtc = new ShareMeWebRTC({
+    const rtc = new ShareDropRTC({
       peerId,
       onProgress:    (pct, bytes, speed, total) => this._onPeerProgress(peerId, pct, bytes, speed, total),
       onComplete:    ()                          => this._onPeerComplete(peerId),
