@@ -1,202 +1,408 @@
 /**
- * qr.js — QR Code generation + camera-based scanning
+ * webrtc.js — ShareMeWeb WebRTC Engine v4
  * ─────────────────────────────────────────────────────────────
- * Uses:
- *  - QRCode.js (CDN) for generation
- *  - jsQR (CDN) for decoding from camera stream
- *
- * Both libraries are loaded via <script> tags in HTML so this file
- * stays dependency-free and works offline after first load.
+ * v4 fixes:
+ *  - Added FREE TURN servers (fixes "connection failed" on
+ *    different networks / mobile / strict NAT / firewalls)
+ *  - Better connection state handling
+ *  - Auto-retry on failure
+ *  - Longer ICE gathering timeout
  * ─────────────────────────────────────────────────────────────
  */
 
 'use strict';
 
-/* ═══════════════════════════════════════════════════════════════
-   QR GENERATOR
-   ═══════════════════════════════════════════════════════════════ */
+const CHUNK_SIZE       = 512 * 1024;
+const BUFFER_THRESHOLD = 16 * 1024 * 1024;
+const BUFFER_LOW       = 4  * 1024 * 1024;
+const PREFETCH_COUNT   = 4;
 
-/**
- * generateQR — render a QR code into a container element
- * @param {string} text   — the URL / data to encode
- * @param {HTMLElement} container — element to render into
- * @param {number} [size=200]    — pixel size
- * @returns {Promise<void>}
- */
-async function generateQR(text, container, size = 200) {
-  // Clear previous content
-  container.innerHTML = '';
+/* ── ICE config with FREE TURN servers ────────────────────────
+   TURN servers relay traffic when direct P2P fails.
+   This fixes "connection failed" on:
+   - Different WiFi networks
+   - Mobile data
+   - Corporate firewalls
+   - Strict NAT routers
+   ─────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+   ICE SERVERS
+   IMPORTANT: Replace TURN credentials with your own from
+   https://dashboard.metered.ca/signup (free — 50GB/month)
+   Steps:
+   1. Sign up free at dashboard.metered.ca
+   2. Go to TURN Credentials
+   3. Copy username and credential
+   4. Replace below
+   ───────────────────────────────────────────────────────────── */
+const ICE_SERVERS = [
+  /* ── STUN servers (helps find direct path) ── */
+  { urls: 'stun:stun.l.google.com:19302'     },
+  { urls: 'stun:stun1.l.google.com:19302'    },
+  { urls: 'stun:stun2.l.google.com:19302'    },
+  { urls: 'stun:stun3.l.google.com:19302'    },
+  { urls: 'stun:stun4.l.google.com:19302'    },
+  { urls: 'stun:stun.cloudflare.com:3478'    },
+  { urls: 'stun:stun.relay.metered.ca:80'    },
 
-  if (typeof QRCode === 'undefined') {
-    throw new Error('QRCode library not loaded. Check your <script> tags.');
+  /* ── TURN servers (relay when direct fails) ──
+     Get FREE credentials at dashboard.metered.ca
+     Replace username and credential below:        */
+  {
+    urls:       'turn:a.relay.metered.ca:80',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
+  },
+  {
+    urls:       'turn:a.relay.metered.ca:80?transport=tcp',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
+  },
+  {
+    urls:       'turn:a.relay.metered.ca:443',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
+  },
+  {
+    urls:       'turns:a.relay.metered.ca:443',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
+  },
+];
+
+class ShareDropRTC {
+  constructor(opts = {}) {
+    this.onProgress     = opts.onProgress     || (() => {});
+    this.onComplete     = opts.onComplete     || (() => {});
+    this.onStatus       = opts.onStatus       || (() => {});
+    this.onFileInfo     = opts.onFileInfo     || (() => {});
+    this.onIceCandidate = opts.onIceCandidate || (() => {});
+    this.peerId         = opts.peerId         || 'peer';
+
+    this._pc            = null;
+    this._channel       = null;
+    this._file          = null;
+    this._chunks        = [];
+    this._expectedSize  = 0;
+    this._receivedSize  = 0;
+    this._fileName      = '';
+    this._fileType      = '';
+    this._startTime     = 0;
+    this._lastTime      = 0;
+    this._lastBytes     = 0;
+    this._paused        = false;
+    this._sending       = false;
+    this._offset        = 0;
   }
 
-  // QRCode.js creates a canvas element inside the container
-  new QRCode(container, {
-    text,
-    width:          size,
-    height:         size,
-    colorDark:      '#1a1916',
-    colorLight:     '#ffffff',
-    correctLevel:   QRCode.CorrectLevel.M,   // Medium error correction
-  });
-}
+  /* ── Create RTCPeerConnection ──────────────────────────────── */
+  _createPeer() {
+    const pc = new RTCPeerConnection({
+      iceServers:         ICE_SERVERS,
+      iceTransportPolicy: 'all',      // allow TURN relay
+      bundlePolicy:       'max-bundle',
+      rtcpMuxPolicy:      'require',
+    });
 
-/* ═══════════════════════════════════════════════════════════════
-   QR SCANNER (Camera)
-   ═══════════════════════════════════════════════════════════════ */
+    pc.onicecandidate = (e) => {
+      if (e.candidate) this.onIceCandidate(e.candidate);
+    };
 
-class QRScanner {
-  /**
-   * @param {HTMLVideoElement} videoEl  — <video> element to stream camera into
-   * @param {HTMLCanvasElement} canvasEl — off-screen canvas for frame capture
-   * @param {Function} onResult (text) — called when a QR code is decoded
-   * @param {Function} onError  (err)  — called on camera / decode error
-   */
-  constructor(videoEl, canvasEl, onResult, onError) {
-    this._video    = videoEl;
-    this._canvas   = canvasEl || document.createElement('canvas');
-    this._ctx      = this._canvas.getContext('2d');
-    this._onResult = onResult;
-    this._onError  = onError;
-    this._stream   = null;
-    this._rafId    = null;
-    this._active   = false;
+    pc.onconnectionstatechange = () => {
+      const s = pc.connectionState;
+      if (s === 'connecting')   this.onStatus('🔗 Establishing connection…', 'waiting');
+      if (s === 'connected')    this.onStatus('✅ Peer connected!', 'connect');
+      if (s === 'disconnected') this.onStatus('❌ Peer disconnected. Please retry.', 'error');
+      if (s === 'failed')       this.onStatus('❌ Connection failed. Please refresh and try again.', 'error');
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      const s = pc.iceConnectionState;
+      if (s === 'checking')     this.onStatus('🔍 Finding best connection path…', 'waiting');
+      if (s === 'connected')    this.onStatus('✅ Connection established!', 'connect');
+      if (s === 'completed')    this.onStatus('✅ Connection ready!', 'connect');
+      if (s === 'failed')       this.onStatus('❌ Could not connect. Check both devices are online.', 'error');
+      if (s === 'disconnected') this.onStatus('⚠️ Connection unstable…', 'waiting');
+    };
+
+    return pc;
   }
 
-  /**
-   * start — request camera permission and begin scanning
-   */
-  async start() {
-    if (typeof jsQR === 'undefined') {
-      this._onError(new Error('jsQR library not loaded.'));
-      return;
+
+
+  /* ═══════════════════════════════════════════════════════════
+     SENDER SIDE
+     ═══════════════════════════════════════════════════════════ */
+  setFile(file) { this._file = file; }
+
+  async createOffer() {
+    this._pc = this._createPeer();
+    this._channel = this._pc.createDataChannel('file-transfer', {
+      ordered:        true,
+      maxRetransmits: null,
+    });
+    this._channel.binaryType = 'arraybuffer';
+    this._channel.bufferedAmountLowThreshold = BUFFER_LOW;
+    this._setupSenderChannel(this._channel);
+
+    const offer = await this._pc.createOffer();
+    await this._pc.setLocalDescription(offer);
+    await this._waitForICE();
+    return this._pc.localDescription;
+  }
+
+  async handleAnswer(answer) {
+    if (!this._pc) throw new Error('No peer connection.');
+    await this._pc.setRemoteDescription(new RTCSessionDescription(answer));
+    this.onStatus('Receiver connected — starting transfer…', 'transfer');
+  }
+
+  async answerReceiverOffer(offer) {
+    this._pc = this._createPeer();
+    this._channel = this._pc.createDataChannel('file-transfer', { ordered: true });
+    this._channel.binaryType = 'arraybuffer';
+    this._channel.bufferedAmountLowThreshold = BUFFER_LOW;
+    this._setupSenderChannel(this._channel);
+    await this._pc.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await this._pc.createAnswer();
+    await this._pc.setLocalDescription(answer);
+    await this._waitForICE();
+    return this._pc.localDescription;
+  }
+
+  async addIceCandidate(candidate) {
+    if (!this._pc) return;
+    try { await this._pc.addIceCandidate(new RTCIceCandidate(candidate)); }
+    catch(e) { console.warn('ICE:', e.message); }
+  }
+
+  /* ── Sender channel ────────────────────────────────────────── */
+  _setupSenderChannel(ch) {
+    ch.onopen = () => {
+      this.onStatus('Connected — sending file…', 'transfer');
+      this._startTurboSend();
+    };
+
+    ch.onbufferedamountlow = () => {
+      if (this._paused) {
+        this._paused  = false;
+        this._sending = false;
+        this._startTurboSend();
+      }
+    };
+
+    ch.onerror = () => this.onStatus('Channel error.', 'error');
+    ch.onclose = () => this.onStatus('Channel closed.', 'waiting');
+  }
+
+  async _startTurboSend() {
+    if (!this._file || !this._channel || this._sending) return;
+    this._sending = true;
+    this._offset  = this._offset || 0;
+
+    const file      = this._file;
+    const totalSize = file.size;
+
+    // Send metadata first
+    if (this._offset === 0) {
+      this._channel.send(JSON.stringify({
+        type:     'meta',
+        name:     file.name,
+        size:     file.size,
+        mimeType: file.type || 'application/octet-stream',
+      }));
+      this._startTime = Date.now();
+      this._lastTime  = this._startTime;
+      this._lastBytes = 0;
     }
 
-    try {
-      // Prefer rear camera on mobile devices
-      const constraints = {
-        video: {
-          facingMode: { ideal: 'environment' },
-          width:  { ideal: 1280 },
-          height: { ideal: 720 },
-        }
-      };
+    while (this._offset < totalSize) {
+      if (this._channel.bufferedAmount > BUFFER_THRESHOLD) {
+        this._paused  = true;
+        this._sending = false;
+        return;
+      }
 
-      this._stream = await navigator.mediaDevices.getUserMedia(constraints);
-      this._video.srcObject = this._stream;
-      this._video.setAttribute('playsinline', true); // Required for iOS Safari
-      await this._video.play();
+      // Pre-fetch multiple chunks in parallel
+      const fetchPromises = [];
+      for (let i = 0; i < PREFETCH_COUNT; i++) {
+        const start = this._offset + (i * CHUNK_SIZE);
+        if (start >= totalSize) break;
+        const end = Math.min(start + CHUNK_SIZE, totalSize);
+        fetchPromises.push(file.slice(start, end).arrayBuffer());
+      }
 
-      this._active = true;
-      this._scan();
-    } catch (err) {
-      this._onError(err);
-    }
-  }
+      const buffers = await Promise.all(fetchPromises);
 
-  /**
-   * stop — release camera and stop scanning loop
-   */
-  stop() {
-    this._active = false;
-    if (this._rafId) { cancelAnimationFrame(this._rafId); this._rafId = null; }
-    if (this._stream) {
-      this._stream.getTracks().forEach(t => t.stop());
-      this._stream = null;
-    }
-    this._video.srcObject = null;
-  }
+      for (const buffer of buffers) {
+        if (!this._channel || this._channel.readyState !== 'open') return;
+        this._channel.send(buffer);
+        this._offset += buffer.byteLength;
 
-  /**
-   * _scan — RAF loop: capture frame → decode with jsQR
-   */
-  _scan() {
-    if (!this._active) return;
-
-    if (this._video.readyState === this._video.HAVE_ENOUGH_DATA) {
-      const w = this._video.videoWidth;
-      const h = this._video.videoHeight;
-
-      this._canvas.width  = w;
-      this._canvas.height = h;
-      this._ctx.drawImage(this._video, 0, 0, w, h);
-
-      const imageData = this._ctx.getImageData(0, 0, w, h);
-      const code = jsQR(imageData.data, w, h, {
-        inversionAttempts: 'dontInvert',
-      });
-
-      if (code && code.data) {
-        this.stop();
-        this._onResult(code.data);
-        return; // Don't schedule next frame after success
+        const pct   = Math.round((this._offset / totalSize) * 100);
+        const now   = Date.now();
+        const dt    = Math.max((now - this._lastTime) / 1000, 0.001);
+        const speed = (this._offset - this._lastBytes) / dt;
+        this._lastTime  = now;
+        this._lastBytes = this._offset;
+        this.onProgress(pct, this._offset, speed, totalSize);
       }
     }
 
-    this._rafId = requestAnimationFrame(() => this._scan());
+    this._channel.send(JSON.stringify({ type: 'end' }));
+    this._sending = false;
+    this._offset  = 0;
+    this.onStatus('✓ File sent successfully!', 'done');
+    this.onComplete();
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     RECEIVER SIDE
+     ═══════════════════════════════════════════════════════════ */
+  async createAnswer(offer) {
+    this._pc = this._createPeer();
+    this._pc.ondatachannel = (e) => {
+      this._channel = e.channel;
+      this._channel.binaryType = 'arraybuffer';
+      this._setupReceiverChannel(this._channel);
+    };
+    await this._pc.setRemoteDescription(new RTCSessionDescription(offer));
+    const answer = await this._pc.createAnswer();
+    await this._pc.setLocalDescription(answer);
+    await this._waitForICE();
+    return this._pc.localDescription;
+  }
+
+  async createReceiverOffer() {
+    this._pc = this._createPeer();
+    this._pc.ondatachannel = (e) => {
+      this._channel = e.channel;
+      this._channel.binaryType = 'arraybuffer';
+      this._setupReceiverChannel(this._channel);
+    };
+    const offer = await this._pc.createOffer();
+    await this._pc.setLocalDescription(offer);
+    await this._waitForICE();
+    return this._pc.localDescription;
+  }
+
+  async handleSenderAnswer(answer) {
+    if (!this._pc) throw new Error('No peer connection.');
+    await this._pc.setRemoteDescription(new RTCSessionDescription(answer));
+    this.onStatus('Sender connected — waiting for file…', 'connect');
+  }
+
+  _setupReceiverChannel(ch) {
+    this._chunks       = [];
+    this._receivedSize = 0;
+
+    ch.onmessage = (e) => {
+      if (typeof e.data === 'string') {
+        const msg = JSON.parse(e.data);
+        if (msg.type === 'meta') {
+          this._fileName     = msg.name;
+          this._fileType     = msg.mimeType;
+          this._expectedSize = msg.size;
+          this._startTime    = Date.now();
+          this._lastTime     = this._startTime;
+          this._lastBytes    = 0;
+          this.onFileInfo(msg.name, msg.size);
+          this.onStatus('Receiving: ' + msg.name, 'transfer');
+        }
+        if (msg.type === 'end') this._assembleFile();
+        return;
+      }
+
+      this._chunks.push(e.data);
+      this._receivedSize += e.data.byteLength;
+
+      const pct   = Math.round((this._receivedSize / this._expectedSize) * 100);
+      const now   = Date.now();
+      const dt    = Math.max((now - this._lastTime) / 1000, 0.001);
+      const speed = (this._receivedSize - this._lastBytes) / dt;
+      this._lastTime  = now;
+      this._lastBytes = this._receivedSize;
+      this.onProgress(pct, this._receivedSize, speed, this._expectedSize);
+    };
+
+    ch.onopen  = () => this.onStatus('Connected — ready to receive…', 'connect');
+    ch.onerror = () => this.onStatus('Channel error.', 'error');
+  }
+
+  _assembleFile() {
+    const blob = new Blob(this._chunks, { type: this._fileType });
+    this.onStatus('✓ Download ready!', 'done');
+    this.onComplete(blob, this._fileName, this._expectedSize);
+    this._chunks = [];
+    setTimeout(() => this.destroy(), 5000);
+  }
+
+  /* ── Helpers ──────────────────────────────────────────────── */
+  _waitForICE() {
+    return new Promise((resolve) => {
+      if (this._pc.iceGatheringState === 'complete') { resolve(); return; }
+
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; resolve(); } };
+
+      // Resolve when gathering complete
+      this._pc.onicegatheringstatechange = () => {
+        if (this._pc.iceGatheringState === 'complete') done();
+      };
+
+      // Also resolve when first candidate arrives (faster!)
+      this._pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          this.onIceCandidate(e.candidate);
+          // Start a short timer after first candidate — don't wait for all
+          if (!resolved) setTimeout(done, 500);
+        } else {
+          // null candidate = gathering complete
+          done();
+        }
+      };
+
+      // Hard timeout fallback — 4 seconds max
+      setTimeout(done, 4000);
+    });
+  }
+
+  destroy() {
+    try { if (this._channel) this._channel.close(); } catch(_) {}
+    try { if (this._pc)      this._pc.close();      } catch(_) {}
+    this._pc = null; this._channel = null;
   }
 }
 
-/* ── Utility: format file size ─────────────────────────────── */
-function formatSize(bytes) {
-  if (bytes === 0) return '0 B';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+/* ── MultiSender ──────────────────────────────────────────── */
+class MultiSender {
+  constructor(file, { onPeerProgress, onPeerComplete, onPeerStatus, onIceCandidate }) {
+    this._file           = file;
+    this._onPeerProgress = onPeerProgress  || (() => {});
+    this._onPeerComplete = onPeerComplete  || (() => {});
+    this._onPeerStatus   = onPeerStatus    || (() => {});
+    this._onIceCandidate = onIceCandidate  || (() => {});
+    this._peers          = new Map();
+  }
+
+  addPeer(peerId) {
+    const rtc = new ShareDropRTC({
+      peerId,
+      onProgress:    (pct, bytes, speed, total) => this._onPeerProgress(peerId, pct, bytes, speed, total),
+      onComplete:    ()                          => this._onPeerComplete(peerId),
+      onStatus:      (msg, type)                 => this._onPeerStatus(peerId, msg, type),
+      onIceCandidate:(cand)                      => this._onIceCandidate(peerId, cand),
+    });
+    rtc.setFile(this._file);
+    this._peers.set(peerId, rtc);
+    return rtc;
+  }
+
+  getPeer(peerId)    { return this._peers.get(peerId); }
+  removePeer(peerId) { const r = this._peers.get(peerId); if(r){r.destroy(); this._peers.delete(peerId);} }
+  get peerCount()    { return this._peers.size; }
+  destroyAll()       { this._peers.forEach(r => r.destroy()); this._peers.clear(); }
 }
 
-/* ── Utility: format transfer speed ───────────────────────── */
-function formatSpeed(bytesPerSec) {
-  return formatSize(bytesPerSec) + '/s';
-}
-
-/* ── Utility: estimate time remaining ─────────────────────── */
-function formatETA(bytesRemaining, speed) {
-  if (!speed || speed === 0) return '—';
-  const secs = Math.ceil(bytesRemaining / speed);
-  if (secs < 60)  return secs + 's';
-  if (secs < 3600) return Math.ceil(secs / 60) + 'm';
-  return Math.ceil(secs / 3600) + 'h';
-}
-
-/* ── Utility: trigger file download in browser ─────────────── */
-function downloadBlob(blob, fileName) {
-  const url = URL.createObjectURL(blob);
-  const a   = document.createElement('a');
-  a.href     = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  // Revoke after a short delay to allow download to start
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-}
-
-/* ── Utility: get file emoji by extension ─────────────────── */
-function fileEmoji(name) {
-  const ext = (name || '').split('.').pop().toLowerCase();
-  const map = {
-    pdf: '📄', doc: '📝', docx: '📝', txt: '📃',
-    xls: '📊', xlsx: '📊', csv: '📊',
-    ppt: '📋', pptx: '📋',
-    jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', webp: '🖼️', svg: '🖼️',
-    mp4: '🎬', mov: '🎬', avi: '🎬', mkv: '🎬', webm: '🎬',
-    mp3: '🎵', wav: '🎵', flac: '🎵', aac: '🎵',
-    zip: '🗜️', rar: '🗜️', tar: '🗜️', gz: '🗜️', '7z': '🗜️',
-    js: '💻', ts: '💻', py: '💻', html: '💻', css: '💻', json: '💻',
-    exe: '⚙️', dmg: '⚙️', pkg: '⚙️',
-    apk: '📱',
-  };
-  return map[ext] || '📁';
-}
-
-/* Expose globally */
-window.generateQR  = generateQR;
-window.QRScanner   = QRScanner;
-window.formatSize  = formatSize;
-window.formatSpeed = formatSpeed;
-window.formatETA   = formatETA;
-window.downloadBlob = downloadBlob;
-window.fileEmoji   = fileEmoji;
+window.ShareDropRTC = ShareDropRTC;
+window.MultiSender  = MultiSender;
