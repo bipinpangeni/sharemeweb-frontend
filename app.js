@@ -72,7 +72,7 @@ const UI = {
 /* ── State ─────────────────────────────────────────────────── */
 let selectedFile   = null;
 let multiSender    = null;   // MultiSender instance (sender side)
-let rtcReceive     = null;   // ShareMeWebRTC instance (receiver side)
+let rtcReceive     = null;   // ShareDropRTC instance (receiver side)
 let socket         = null;
 let sessionId      = null;
 let downloadBlob_  = null;
@@ -359,7 +359,7 @@ async function sendToReceiverFirst(sid) {
     socket.emit('join-session', { sessionId, role: 'sender' });
 
     socket.on('offer', async ({ sdp }) => {
-      const rtcSend = new ShareMeWebRTC({
+      const rtcSend = new ShareDropRTC({
         onProgress: (pct, bytes, speed, total) => updateSendProgress('single', pct, bytes, speed, total),
         onComplete: () => setStatus(UI.statusSend, '✓ File sent!', 'done'),
         onStatus:   (msg, type) => setStatus(UI.statusSend, msg, type),
@@ -372,7 +372,7 @@ async function sendToReceiverFirst(sid) {
     });
 
     socket.on('ice-candidate', async ({ candidate, role }) => {
-      // handled in ShareMeWebRTC
+      // handled in ShareDropRTC
     });
 
   } catch (err) {
@@ -404,7 +404,7 @@ function connectToSession(rawLink) {
   });
 
   socket.on('offer', async ({ sdp }) => {
-    rtcReceive = new ShareMeWebRTC({
+    rtcReceive = new ShareDropRTC({
       onProgress:    updateReceiveProgress,
       onComplete:    handleFileComplete,
       onStatus:      (msg, type) => setStatus(UI.statusReceive, msg, type),
