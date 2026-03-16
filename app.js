@@ -16,6 +16,18 @@ const SIGNALING_URL = (() => {
   return meta ? meta.content : 'http://localhost:3001';
 })();
 
+/* ── Keep server awake — ping every 10 minutes ─────────────
+   Prevents Render free tier from sleeping (15 min timeout)
+   ─────────────────────────────────────────────────────────── */
+function keepServerAwake() {
+  fetch(SIGNALING_URL + '/health', { method: 'GET', mode: 'no-cors' })
+    .catch(() => {}); // Silent — just a ping
+}
+// Ping immediately on page load to wake server
+keepServerAwake();
+// Then ping every 10 minutes
+setInterval(keepServerAwake, 10 * 60 * 1000);
+
 const $ = (sel) => document.querySelector(sel);
 
 /* ── DOM refs ──────────────────────────────────────────────── */
@@ -148,11 +160,12 @@ function initUploadZone() {
   UI.uploadZone.addEventListener('dragleave', () => UI.uploadZone.classList.remove('dragover'));
   UI.uploadZone.addEventListener('drop', (e) => {
     e.preventDefault(); UI.uploadZone.classList.remove('dragover');
-    const f = e.dataTransfer.files[0];
-    if (f) handleFileSelected(f);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) handleFilesSelected(files);
   });
   UI.fileInput.addEventListener('change', () => {
-    if (UI.fileInput.files[0]) handleFileSelected(UI.fileInput.files[0]);
+    const files = Array.from(UI.fileInput.files);
+    if (files.length > 0) handleFilesSelected(files);
   });
   UI.btnClear.addEventListener('click', clearFile);
   UI.btnGenerate.addEventListener('click', startSenderSession);
@@ -169,17 +182,76 @@ function initUploadZone() {
   if (UI.btnCopyMyLink) UI.btnCopyMyLink.addEventListener('click', copyMyLink);
 }
 
-/* ── File selected ─────────────────────────────────────────── */
-function handleFileSelected(file) {
-  selectedFile = file;
-  UI.fileIcon.textContent = fileEmoji(file.name);
-  UI.fileName.textContent = file.name;
-  UI.fileSize.textContent = formatSize(file.size);
+/* ── Files selected (single or multiple) ───────────────────── */
+async function handleFilesSelected(files) {
+  if (!files || files.length === 0) return;
+
+  if (files.length === 1) {
+    // Single file — send directly
+    selectedFile = files[0];
+    UI.fileIcon.textContent = fileEmoji(files[0].name);
+    UI.fileName.textContent = files[0].name;
+    UI.fileSize.textContent = formatSize(files[0].size);
+  } else {
+    // Multiple files — zip them together
+    setStatus(UI.statusSend, '📦 Zipping ' + files.length + ' files…', 'waiting');
+    UI.btnGenerate.disabled = true;
+
+    try {
+      if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded');
+
+      const zip = new JSZip();
+      for (const file of files) {
+        zip.file(file.name, file);
+      }
+
+      const blob = await zip.generateAsync({
+        type:               'blob',
+        compression:        'DEFLATE',
+        compressionOptions: { level: 6 },
+        // Progress feedback while zipping
+        onUpdate: (meta) => {
+          const pct = Math.round(meta.percent);
+          setStatus(UI.statusSend, '📦 Zipping files… ' + pct + '%', 'waiting');
+        }
+      });
+
+      // Create a File object from the zip blob
+      const zipName = 'sharemeweb-files-' + files.length + '.zip';
+      selectedFile  = new File([blob], zipName, { type: 'application/zip' });
+
+      UI.fileIcon.textContent = '🗜️';
+      UI.fileName.textContent = zipName + ' (' + files.length + ' files)';
+      UI.fileSize.textContent = formatSize(blob.size);
+      setStatus(UI.statusSend, '✓ ' + files.length + ' files zipped — ready to send!', 'connect');
+
+    } catch (err) {
+      setStatus(UI.statusSend, 'Zip error: ' + err.message, 'error');
+      return;
+    }
+  }
+
   UI.fileInfoStrip.classList.add('visible');
   UI.btnGenerate.disabled = false;
   UI.qrSection.classList.remove('visible');
-  setStatus(UI.statusSend, '', '');
   resetPeerList();
+
+  // Show file list if multiple
+  if (files.length > 1) renderFileList(files);
+}
+
+/* ── Render list of selected files ─────────────────────────── */
+function renderFileList(files) {
+  const list = $('#selected-files-list');
+  if (!list) return;
+  list.innerHTML = '';
+  list.style.display = 'block';
+  Array.from(files).forEach(f => {
+    const item = document.createElement('div');
+    item.className = 'file-list-item';
+    item.innerHTML = `<span>${fileEmoji(f.name)} ${f.name}</span><span class="file-list-size">${formatSize(f.size)}</span>`;
+    list.appendChild(item);
+  });
 }
 
 function clearFile() {
@@ -190,6 +262,9 @@ function clearFile() {
   UI.qrSection.classList.remove('visible');
   setStatus(UI.statusSend, '', '');
   resetPeerList();
+  // Clear file list
+  const list = $('#selected-files-list');
+  if (list) { list.innerHTML = ''; list.style.display = 'none'; }
   if (multiSender) { multiSender.destroyAll(); multiSender = null; }
   if (socket)      { socket.disconnect(); socket = null; }
 }
@@ -203,12 +278,15 @@ async function startSenderSession() {
   sessionMode = 'sender-first';
   UI.btnGenerate.disabled = true;
   UI.btnGenerate.innerHTML = '<span class="spinner"></span> Connecting…';
+  setStatus(UI.statusSend, '⚡ Waking up server…', 'waiting');
 
   try {
     socket    = connectSignaling();
     sessionId = generateId();
 
-    await waitFor(socket, 'connect', 6000);
+    setStatus(UI.statusSend, '🔗 Connecting to server…', 'waiting');
+    await waitFor(socket, 'connect', 4000);
+    setStatus(UI.statusSend, '✓ Server connected — generating QR…', 'connect');
     socket.emit('create-session', { sessionId, mode: 'sender-first' });
 
     /* Create MultiSender — handles all incoming receivers */
@@ -394,12 +472,13 @@ function connectToSession(rawLink) {
   if (!sid) { setStatus(UI.statusReceive, 'Invalid link.', 'error'); return; }
 
   sessionId = sid;
-  const peerId = generateId(); // unique ID for this receiver
-  setStatus(UI.statusReceive, 'Connecting to session…', 'waiting');
+  const peerId = generateId();
+  setStatus(UI.statusReceive, '⚡ Waking up server…', 'waiting');
 
   socket = connectSignaling();
 
   socket.on('connect', () => {
+    setStatus(UI.statusReceive, '🔗 Joining session…', 'waiting');
     socket.emit('join-session', { sessionId, peerId });
   });
 
@@ -623,15 +702,18 @@ function copyMyLink() {
 function connectSignaling() {
   if (typeof io === 'undefined') throw new Error('Socket.io not loaded.');
   return io(SIGNALING_URL, {
-    transports:          ['websocket', 'polling'],
-    timeout:             10000,
-    reconnectionAttempts: 3,
+    transports:           ['websocket'],  // WebSocket only — skip polling handshake
+    timeout:              5000,           // Fail fast — 5s not 10s
+    reconnectionAttempts: 2,              // Less retries = faster failure detection
+    reconnectionDelay:    500,            // Retry faster
+    forceNew:             true,           // Always fresh connection
+    upgrade:              false,          // Skip upgrade negotiation
   });
 }
 
-function waitFor(socket, event, timeoutMs = 6000) {
+function waitFor(socket, event, timeoutMs = 4000) {
   return new Promise((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error('Timeout: ' + event)), timeoutMs);
+    const t = setTimeout(() => reject(new Error('Server took too long. Is it awake?')), timeoutMs);
     socket.once(event, () => { clearTimeout(t); resolve(); });
     socket.once('connect_error', (e) => { clearTimeout(t); reject(e); });
   });
