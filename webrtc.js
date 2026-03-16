@@ -25,37 +25,48 @@ const PREFETCH_COUNT   = 4;
    - Corporate firewalls
    - Strict NAT routers
    ─────────────────────────────────────────────────────────── */
+/* ─────────────────────────────────────────────────────────────
+   ICE SERVERS
+   IMPORTANT: Replace TURN credentials with your own from
+   https://dashboard.metered.ca/signup (free — 50GB/month)
+   Steps:
+   1. Sign up free at dashboard.metered.ca
+   2. Go to TURN Credentials
+   3. Copy username and credential
+   4. Replace below
+   ───────────────────────────────────────────────────────────── */
 const ICE_SERVERS = [
-  /* Google STUN */
+  /* ── STUN servers (helps find direct path) ── */
   { urls: 'stun:stun.l.google.com:19302'     },
   { urls: 'stun:stun1.l.google.com:19302'    },
   { urls: 'stun:stun2.l.google.com:19302'    },
   { urls: 'stun:stun3.l.google.com:19302'    },
   { urls: 'stun:stun4.l.google.com:19302'    },
-
-  /* Cloudflare STUN */
   { urls: 'stun:stun.cloudflare.com:3478'    },
+  { urls: 'stun:stun.relay.metered.ca:80'    },
 
-  /* Open RELAY — FREE TURN servers (fixes connection failed!) */
+  /* ── TURN servers (relay when direct fails) ──
+     Get FREE credentials at dashboard.metered.ca
+     Replace username and credential below:        */
   {
-    urls:       'turn:openrelay.metered.ca:80',
-    username:   'openrelayproject',
-    credential: 'openrelayproject',
+    urls:       'turn:a.relay.metered.ca:80',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
   },
   {
-    urls:       'turn:openrelay.metered.ca:443',
-    username:   'openrelayproject',
-    credential: 'openrelayproject',
+    urls:       'turn:a.relay.metered.ca:80?transport=tcp',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
   },
   {
-    urls:       'turn:openrelay.metered.ca:443?transport=tcp',
-    username:   'openrelayproject',
-    credential: 'openrelayproject',
+    urls:       'turn:a.relay.metered.ca:443',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
   },
   {
-    urls:       'turns:openrelay.metered.ca:443',
-    username:   'openrelayproject',
-    credential: 'openrelayproject',
+    urls:       'turns:a.relay.metered.ca:443',
+    username:   'REPLACE_WITH_YOUR_USERNAME',
+    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
   },
 ];
 
@@ -99,32 +110,25 @@ class ShareDropRTC {
 
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
-      console.log('Connection state:', s);
-      if (s === 'connecting')   this.onStatus('Establishing connection…', 'waiting');
-      if (s === 'connected')    this.onStatus('Peer connected!', 'connect');
-      if (s === 'disconnected') this.onStatus('Peer disconnected.', 'error');
-      if (s === 'failed') {
-        this.onStatus('Connection failed — trying relay…', 'waiting');
-        // Auto retry with TURN only
-        this._retryWithTURN();
-      }
+      if (s === 'connecting')   this.onStatus('🔗 Establishing connection…', 'waiting');
+      if (s === 'connected')    this.onStatus('✅ Peer connected!', 'connect');
+      if (s === 'disconnected') this.onStatus('❌ Peer disconnected. Please retry.', 'error');
+      if (s === 'failed')       this.onStatus('❌ Connection failed. Please refresh and try again.', 'error');
     };
 
     pc.oniceconnectionstatechange = () => {
-      console.log('ICE state:', pc.iceConnectionState);
+      const s = pc.iceConnectionState;
+      if (s === 'checking')     this.onStatus('🔍 Finding best connection path…', 'waiting');
+      if (s === 'connected')    this.onStatus('✅ Connection established!', 'connect');
+      if (s === 'completed')    this.onStatus('✅ Connection ready!', 'connect');
+      if (s === 'failed')       this.onStatus('❌ Could not connect. Check both devices are online.', 'error');
+      if (s === 'disconnected') this.onStatus('⚠️ Connection unstable…', 'waiting');
     };
 
     return pc;
   }
 
-  /* ── Retry using TURN relay only ─────────────────────────── */
-  _retryWithTURN() {
-    // Force TURN-only on retry for strict NAT environments
-    if (this._pc) {
-      try { this._pc.close(); } catch(_) {}
-    }
-    this.onStatus('Retrying via relay server…', 'waiting');
-  }
+
 
   /* ═══════════════════════════════════════════════════════════
      SENDER SIDE
@@ -336,15 +340,30 @@ class ShareDropRTC {
   /* ── Helpers ──────────────────────────────────────────────── */
   _waitForICE() {
     return new Promise((resolve) => {
-      // Give more time for TURN candidates to gather
       if (this._pc.iceGatheringState === 'complete') { resolve(); return; }
-      const t = setTimeout(resolve, 6000); // 6 seconds for TURN
+
+      let resolved = false;
+      const done = () => { if (!resolved) { resolved = true; resolve(); } };
+
+      // Resolve when gathering complete
       this._pc.onicegatheringstatechange = () => {
-        if (this._pc.iceGatheringState === 'complete') {
-          clearTimeout(t);
-          resolve();
+        if (this._pc.iceGatheringState === 'complete') done();
+      };
+
+      // Also resolve when first candidate arrives (faster!)
+      this._pc.onicecandidate = (e) => {
+        if (e.candidate) {
+          this.onIceCandidate(e.candidate);
+          // Start a short timer after first candidate — don't wait for all
+          if (!resolved) setTimeout(done, 500);
+        } else {
+          // null candidate = gathering complete
+          done();
         }
       };
+
+      // Hard timeout fallback — 4 seconds max
+      setTimeout(done, 4000);
     });
   }
 
