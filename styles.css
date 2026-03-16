@@ -721,3 +721,29 @@ p  { color: var(--text-muted); }
   .hiw-step { grid-template-columns: 1fr; }
   .hiw-step-num { width: 36px; height: 36px; font-size: 1rem; }
 }
+
+/* ── Multiple file list ───────────────────────────────────── */
+.file-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 14px;
+  font-size: .82rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+.file-list-item:last-child { border-bottom: none; }
+.file-list-item span:first-child {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 75%;
+}
+.file-list-size {
+  font-size: .75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  margin-left: 8px;
+}
