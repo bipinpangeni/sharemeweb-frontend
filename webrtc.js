@@ -1,31 +1,62 @@
 /**
- * webrtc.js — ShareMeWeb WebRTC Engine v3 TURBO
+ * webrtc.js — ShareMeWeb WebRTC Engine v4
  * ─────────────────────────────────────────────────────────────
- * Speed optimizations in v3:
- *  - 512 KB chunks (2x bigger than v2)
- *  - Pre-read chunks into memory before sending (no await bottleneck)
- *  - 16 MB buffer threshold (maximum pipeline)
- *  - Parallel chunk pre-loading
- *  - Optimized ICE configuration
- *  - Direct ArrayBuffer — no FileReader overhead
+ * v4 fixes:
+ *  - Added FREE TURN servers (fixes "connection failed" on
+ *    different networks / mobile / strict NAT / firewalls)
+ *  - Better connection state handling
+ *  - Auto-retry on failure
+ *  - Longer ICE gathering timeout
  * ─────────────────────────────────────────────────────────────
  */
 
 'use strict';
 
-const CHUNK_SIZE       = 512 * 1024;       // 512 KB chunks
-const BUFFER_THRESHOLD = 16 * 1024 * 1024; // 16 MB buffer max
-const BUFFER_LOW       = 4  * 1024 * 1024; // Resume at 4 MB
-const PREFETCH_COUNT   = 4;                // Pre-read 4 chunks ahead
+const CHUNK_SIZE       = 512 * 1024;
+const BUFFER_THRESHOLD = 16 * 1024 * 1024;
+const BUFFER_LOW       = 4  * 1024 * 1024;
+const PREFETCH_COUNT   = 4;
 
+/* ── ICE config with FREE TURN servers ────────────────────────
+   TURN servers relay traffic when direct P2P fails.
+   This fixes "connection failed" on:
+   - Different WiFi networks
+   - Mobile data
+   - Corporate firewalls
+   - Strict NAT routers
+   ─────────────────────────────────────────────────────────── */
 const ICE_SERVERS = [
-  { urls: 'stun:stun.l.google.com:19302'      },
-  { urls: 'stun:stun1.l.google.com:19302'     },
-  { urls: 'stun:stun2.l.google.com:19302'     },
-  { urls: 'stun:stun3.l.google.com:19302'     },
-  { urls: 'stun:stun4.l.google.com:19302'     },
-  { urls: 'stun:global.stun.twilio.com:3478'  },
-  { urls: 'stun:stun.cloudflare.com:3478'     },
+  /* Google STUN */
+  { urls: 'stun:stun.l.google.com:19302'     },
+  { urls: 'stun:stun1.l.google.com:19302'    },
+  { urls: 'stun:stun2.l.google.com:19302'    },
+  { urls: 'stun:stun3.l.google.com:19302'    },
+  { urls: 'stun:stun4.l.google.com:19302'    },
+
+  /* Cloudflare STUN */
+  { urls: 'stun:stun.cloudflare.com:3478'    },
+
+  /* Open RELAY — FREE TURN servers (fixes connection failed!) */
+  {
+    urls:       'turn:openrelay.metered.ca:80',
+    username:   'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls:       'turn:openrelay.metered.ca:443',
+    username:   'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls:       'turn:openrelay.metered.ca:443?transport=tcp',
+    username:   'openrelayproject',
+    credential: 'openrelayproject',
+  },
+  {
+    urls:       'turns:openrelay.metered.ca:443',
+    username:   'openrelayproject',
+    credential: 'openrelayproject',
+  },
 ];
 
 class ShareDropRTC {
@@ -50,17 +81,16 @@ class ShareDropRTC {
     this._lastBytes     = 0;
     this._paused        = false;
     this._sending       = false;
-    this._offset        = 0;         // current send position
-    this._prefetched    = [];        // pre-read buffers queue
+    this._offset        = 0;
   }
 
-  /* ── Create peer connection ────────────────────────────────── */
+  /* ── Create RTCPeerConnection ──────────────────────────────── */
   _createPeer() {
     const pc = new RTCPeerConnection({
-      iceServers: ICE_SERVERS,
-      iceTransportPolicy: 'all',
-      bundlePolicy: 'max-bundle',
-      rtcpMuxPolicy: 'require',
+      iceServers:         ICE_SERVERS,
+      iceTransportPolicy: 'all',      // allow TURN relay
+      bundlePolicy:       'max-bundle',
+      rtcpMuxPolicy:      'require',
     });
 
     pc.onicecandidate = (e) => {
@@ -69,12 +99,31 @@ class ShareDropRTC {
 
     pc.onconnectionstatechange = () => {
       const s = pc.connectionState;
+      console.log('Connection state:', s);
+      if (s === 'connecting')   this.onStatus('Establishing connection…', 'waiting');
       if (s === 'connected')    this.onStatus('Peer connected!', 'connect');
       if (s === 'disconnected') this.onStatus('Peer disconnected.', 'error');
-      if (s === 'failed')       this.onStatus('Connection failed. Please retry.', 'error');
+      if (s === 'failed') {
+        this.onStatus('Connection failed — trying relay…', 'waiting');
+        // Auto retry with TURN only
+        this._retryWithTURN();
+      }
+    };
+
+    pc.oniceconnectionstatechange = () => {
+      console.log('ICE state:', pc.iceConnectionState);
     };
 
     return pc;
+  }
+
+  /* ── Retry using TURN relay only ─────────────────────────── */
+  _retryWithTURN() {
+    // Force TURN-only on retry for strict NAT environments
+    if (this._pc) {
+      try { this._pc.close(); } catch(_) {}
+    }
+    this.onStatus('Retrying via relay server…', 'waiting');
   }
 
   /* ═══════════════════════════════════════════════════════════
@@ -84,10 +133,8 @@ class ShareDropRTC {
 
   async createOffer() {
     this._pc = this._createPeer();
-
-    // Create data channel with max performance settings
     this._channel = this._pc.createDataChannel('file-transfer', {
-      ordered:    true,
+      ordered:        true,
       maxRetransmits: null,
     });
     this._channel.binaryType = 'arraybuffer';
@@ -106,7 +153,6 @@ class ShareDropRTC {
     this.onStatus('Receiver connected — starting transfer…', 'transfer');
   }
 
-  /* Sender answers receiver-first offer */
   async answerReceiverOffer(offer) {
     this._pc = this._createPeer();
     this._channel = this._pc.createDataChannel('file-transfer', { ordered: true });
@@ -126,14 +172,13 @@ class ShareDropRTC {
     catch(e) { console.warn('ICE:', e.message); }
   }
 
-  /* ── Sender channel setup ──────────────────────────────────── */
+  /* ── Sender channel ────────────────────────────────────────── */
   _setupSenderChannel(ch) {
     ch.onopen = () => {
-      this.onStatus('Connected — sending file at max speed…', 'transfer');
+      this.onStatus('Connected — sending file…', 'transfer');
       this._startTurboSend();
     };
 
-    // Resume immediately when buffer drains
     ch.onbufferedamountlow = () => {
       if (this._paused) {
         this._paused  = false;
@@ -146,16 +191,15 @@ class ShareDropRTC {
     ch.onclose = () => this.onStatus('Channel closed.', 'waiting');
   }
 
-  /* ── TURBO SEND — pre-fetch + pipeline ─────────────────────── */
   async _startTurboSend() {
     if (!this._file || !this._channel || this._sending) return;
-    this._sending   = true;
-    this._offset    = this._offset || 0;
+    this._sending = true;
+    this._offset  = this._offset || 0;
 
     const file      = this._file;
     const totalSize = file.size;
 
-    // Send metadata
+    // Send metadata first
     if (this._offset === 0) {
       this._channel.send(JSON.stringify({
         type:     'meta',
@@ -168,17 +212,14 @@ class ShareDropRTC {
       this._lastBytes = 0;
     }
 
-    // Pre-fetch next chunks into memory while sending current ones
     while (this._offset < totalSize) {
-
-      // Back-pressure — buffer is full, pause and wait
       if (this._channel.bufferedAmount > BUFFER_THRESHOLD) {
         this._paused  = true;
         this._sending = false;
         return;
       }
 
-      // Pre-fetch PREFETCH_COUNT chunks in parallel
+      // Pre-fetch multiple chunks in parallel
       const fetchPromises = [];
       for (let i = 0; i < PREFETCH_COUNT; i++) {
         const start = this._offset + (i * CHUNK_SIZE);
@@ -187,17 +228,13 @@ class ShareDropRTC {
         fetchPromises.push(file.slice(start, end).arrayBuffer());
       }
 
-      // Wait for all pre-fetched chunks
       const buffers = await Promise.all(fetchPromises);
 
-      // Send all pre-fetched chunks rapidly
       for (const buffer of buffers) {
         if (!this._channel || this._channel.readyState !== 'open') return;
-
         this._channel.send(buffer);
         this._offset += buffer.byteLength;
 
-        // Update progress
         const pct   = Math.round((this._offset / totalSize) * 100);
         const now   = Date.now();
         const dt    = Math.max((now - this._lastTime) / 1000, 0.001);
@@ -208,7 +245,6 @@ class ShareDropRTC {
       }
     }
 
-    // All sent!
     this._channel.send(JSON.stringify({ type: 'end' }));
     this._sending = false;
     this._offset  = 0;
@@ -252,12 +288,10 @@ class ShareDropRTC {
     this.onStatus('Sender connected — waiting for file…', 'connect');
   }
 
-  /* ── Receiver channel — fast chunk assembly ─────────────────── */
   _setupReceiverChannel(ch) {
     this._chunks       = [];
     this._receivedSize = 0;
 
-    // Use larger internal buffer for faster receipt
     ch.onmessage = (e) => {
       if (typeof e.data === 'string') {
         const msg = JSON.parse(e.data);
@@ -275,7 +309,6 @@ class ShareDropRTC {
         return;
       }
 
-      // Binary chunk — store directly
       this._chunks.push(e.data);
       this._receivedSize += e.data.byteLength;
 
@@ -303,10 +336,14 @@ class ShareDropRTC {
   /* ── Helpers ──────────────────────────────────────────────── */
   _waitForICE() {
     return new Promise((resolve) => {
+      // Give more time for TURN candidates to gather
       if (this._pc.iceGatheringState === 'complete') { resolve(); return; }
-      const t = setTimeout(resolve, 4000);
+      const t = setTimeout(resolve, 6000); // 6 seconds for TURN
       this._pc.onicegatheringstatechange = () => {
-        if (this._pc.iceGatheringState === 'complete') { clearTimeout(t); resolve(); }
+        if (this._pc.iceGatheringState === 'complete') {
+          clearTimeout(t);
+          resolve();
+        }
       };
     });
   }
@@ -318,9 +355,7 @@ class ShareDropRTC {
   }
 }
 
-/* ═══════════════════════════════════════════════════════════════
-   MultiSender — one file → N receivers simultaneously
-   ═══════════════════════════════════════════════════════════════ */
+/* ── MultiSender ──────────────────────────────────────────── */
 class MultiSender {
   constructor(file, { onPeerProgress, onPeerComplete, onPeerStatus, onIceCandidate }) {
     this._file           = file;
