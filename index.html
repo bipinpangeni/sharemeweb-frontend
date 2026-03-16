@@ -15,25 +15,17 @@
   <meta name="twitter:card"       content="summary_large_image" />
   <meta name="twitter:title"      content="ShareMeWeb — Free P2P File Sharing" />
   <meta name="twitter:description" content="Scan a QR code. Transfer files instantly. No cloud. No storage. 100% private." />
-  <!-- Signaling server URL — update before deploying -->
+  <!-- Signaling server URL -->
   <meta name="signaling-url" content="https://sharemeweb-server.onrender.com" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="canonical" href="https://sharemeweb.com/" />
-  <!-- Preconnect to fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- ================================================
-       GOOGLE ADSENSE — Replace ca-pub-XXXXXXXXXXXXXXXX
-       with your real Publisher ID after approval
-       ================================================ -->
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278"
-     crossorigin="anonymous"></script>
+  <!-- GOOGLE ADSENSE -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
 </head>
 <body>
 
-  <!-- ═══════════════════════════════════════════════════════
-       HEADER
-       ═══════════════════════════════════════════════════════ -->
   <header class="site-header">
     <div class="container header-inner">
       <a href="/" class="logo" aria-label="ShareMeWeb Home">
@@ -48,7 +40,7 @@
       </a>
       <nav aria-label="Main navigation">
         <ul class="nav-links" id="nav-links">
-          <li><a href="/"             class="active">Home</a></li>
+          <li><a href="/" class="active">Home</a></li>
           <li><a href="how-it-works.html">How It Works</a></li>
           <li><a href="about.html">About</a></li>
           <li><a href="contact.html">Contact</a></li>
@@ -63,50 +55,35 @@
 
   <main>
 
-    <!-- ═══════════════════════════════════════════════════════
-         AD SLOT — TOP BANNER
-         ═══════════════════════════════════════════════════════ -->
-    <!-- ADSENSE_TOP -->
+    <!-- AD TOP -->
     <div class="container">
-      <div class="ad-slot-wrap">
-      <!-- ACTIVATE AFTER ADSENSE APPROVAL: remove comment tags below -->
-      <!--
       <ins class="adsbygoogle ad-top"
            style="display:block"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-client="ca-pub-9097558719904278"
            data-ad-slot="1111111111"
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-      <!-- PLACEHOLDER (remove this div after AdSense approval) -->
-      <div class="ad-slot ad-top" aria-label="Advertisement"></div>
-    </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════
-         HERO
-         ═══════════════════════════════════════════════════════ -->
     <section class="hero" aria-labelledby="hero-title">
       <div class="container">
         <div class="hero-badge">⚡ Instant • Encrypted • No Upload Required</div>
         <h1 id="hero-title">Share Files Instantly<br>with a QR Code</h1>
         <p>Transfer any file directly between devices — no cloud, no account, no size limit. Your files never touch our servers.</p>
 
-        <!-- ── Transfer Card ──────────────────────────────── -->
         <div class="transfer-card" role="main">
           <div class="tab-bar" role="tablist">
-            <button class="tab-btn active" id="tab-send" role="tab" aria-selected="true"  aria-controls="panel-send">
+            <button class="tab-btn active" id="tab-send" role="tab" aria-selected="true" aria-controls="panel-send">
               📤 Send File
             </button>
-            <button class="tab-btn"        id="tab-receive" role="tab" aria-selected="false" aria-controls="panel-receive">
+            <button class="tab-btn" id="tab-receive" role="tab" aria-selected="false" aria-controls="panel-receive">
               📥 Receive File
             </button>
           </div>
 
-          <!-- ── SEND PANEL ─────────────────────────────── -->
+          <!-- SEND PANEL -->
           <div class="tab-panel active" id="panel-send" role="tabpanel">
-            <!-- Upload Zone -->
             <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Click or drag a file to upload">
               <input type="file" id="file-input" aria-hidden="true" />
               <div class="upload-icon">📂</div>
@@ -114,7 +91,6 @@
               <p>or click to browse — any file type, any size</p>
             </div>
 
-            <!-- File Info Strip -->
             <div class="file-info-strip" id="file-info-strip" aria-live="polite">
               <span class="file-icon" id="file-icon">📁</span>
               <div class="file-meta">
@@ -124,12 +100,10 @@
               <button class="btn-clear" id="btn-clear" aria-label="Remove selected file">✕</button>
             </div>
 
-            <!-- Generate Button -->
             <button class="btn btn-primary btn-lg btn-block" id="btn-generate" disabled>
               Generate QR Code &amp; Share Link →
             </button>
 
-            <!-- QR Code Section (shown after generation) -->
             <div class="qr-section fade-in" id="qr-section">
               <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
                 Have the receiver scan this QR code or open the link below
@@ -143,19 +117,15 @@
               </div>
             </div>
 
-            <!-- Status -->
             <div id="status-send" role="status" aria-live="polite"></div>
 
-            <!-- ── PEER LIST (multi-receiver) ─────────────── -->
             <div class="peer-list-section" id="peer-list" style="display:none;margin-top:20px;">
               <div class="peer-list-header">
                 <span>👥 Connected Receivers</span>
                 <span id="peer-count" style="font-size:.8rem;color:var(--text-muted);"></span>
               </div>
-              <!-- Peer cards inserted here by app.js -->
             </div>
 
-            <!-- Progress (single / receiver-first mode) -->
             <div class="transfer-progress" id="progress-send">
               <div class="progress-header">
                 <span class="progress-label">Sending…</span>
@@ -171,22 +141,16 @@
               </div>
             </div>
           </div>
-          <!-- END SEND PANEL -->
 
-          <!-- ── RECEIVE PANEL ──────────────────────────── -->
+          <!-- RECEIVE PANEL -->
           <div class="tab-panel" id="panel-receive" role="tabpanel">
             <div class="scan-area">
               <div class="scan-icon">📱</div>
               <h3>Receive a file</h3>
               <p style="font-size:.9rem;margin-bottom:20px;">Choose how you want to receive — scan the sender's QR, or show <em>your own</em> QR for the sender to scan.</p>
-
               <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:4px;">
-                <button class="btn btn-primary btn-lg" id="btn-scan-qr">
-                  📷 Scan Sender's QR
-                </button>
-                <button class="btn btn-secondary btn-lg" id="btn-show-my-qr">
-                  📱 Show My QR Code
-                </button>
+                <button class="btn btn-primary btn-lg" id="btn-scan-qr">📷 Scan Sender's QR</button>
+                <button class="btn btn-secondary btn-lg" id="btn-show-my-qr">📱 Show My QR Code</button>
               </div>
               <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;">
                 <strong>Scan Sender's QR</strong> — sender already has the file ready<br>
@@ -194,7 +158,6 @@
               </p>
             </div>
 
-            <!-- Receiver-first: show MY QR code for sender to scan -->
             <div class="qr-section fade-in" id="my-qr-section" style="margin-top:16px;display:none;">
               <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
                 Show this QR to the <strong>sender</strong> — they scan it and pick the file
@@ -208,7 +171,6 @@
               </div>
             </div>
 
-            <!-- Camera view -->
             <div id="camera-view" role="region" aria-label="Camera QR scanner">
               <video id="camera-video" autoplay playsinline muted></video>
               <div class="scan-overlay">
@@ -222,26 +184,19 @@
             <div class="or-divider" aria-hidden="true">or paste link</div>
 
             <div class="link-input-group">
-              <input
-                type="url"
-                class="link-input"
-                id="link-input"
+              <input type="url" class="link-input" id="link-input"
                 placeholder="Paste share link here… (e.g., https://sharemeweb.com/?s=abc123)"
-                aria-label="Paste session link"
-              />
+                aria-label="Paste session link" />
               <button class="btn btn-primary" id="btn-connect">Connect →</button>
             </div>
 
-            <!-- Status -->
             <div id="status-receive" role="status" aria-live="polite"></div>
 
-            <!-- Incoming file card -->
             <div class="incoming-file" id="incoming-file" aria-live="polite">
               <h3 id="incoming-name">file.ext</h3>
               <p id="incoming-size">0 KB</p>
             </div>
 
-            <!-- Receive progress -->
             <div class="transfer-progress" id="progress-receive">
               <div class="progress-header">
                 <span class="progress-label">Receiving…</span>
@@ -256,45 +211,30 @@
               </div>
             </div>
 
-            <!-- Download button -->
             <button class="btn btn-success btn-lg btn-block hidden" id="btn-download">
               ⬇️ Download File
             </button>
           </div>
-          <!-- END RECEIVE PANEL -->
         </div>
-        <!-- END Transfer Card -->
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════
-         AD SLOT — MIDDLE
-         ═══════════════════════════════════════════════════════ -->
-    <!-- ADSENSE_MIDDLE -->
+    <!-- AD MIDDLE -->
     <div class="container">
-      <div class="ad-slot-wrap">
-      <!--
       <ins class="adsbygoogle ad-middle"
            style="display:block"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-client="ca-pub-9097558719904278"
            data-ad-slot="2222222222"
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-      <div class="ad-slot ad-middle" aria-label="Advertisement"></div>
-    </div>
     </div>
 
-    <!-- ═══════════════════════════════════════════════════════
-         HOW IT WORKS (summary)
-         ═══════════════════════════════════════════════════════ -->
     <section class="how-it-works" aria-labelledby="hiw-title">
       <div class="container">
         <p class="section-label">Simple Process</p>
         <h2 class="section-title" id="hiw-title">How ShareMeWeb Works</h2>
         <p class="section-sub">No accounts. No uploads. Files travel directly from your browser to theirs.</p>
-
         <div class="steps-grid">
           <div class="step-card">
             <div class="step-num">1</div>
@@ -321,16 +261,12 @@
             <p>Files stream peer-to-peer at full speed, encrypted end-to-end. We never see your data.</p>
           </div>
         </div>
-
         <div class="text-center mt-8">
           <a href="how-it-works.html" class="btn btn-secondary">Learn the full technical details →</a>
         </div>
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════
-         FEATURES / TRUST
-         ═══════════════════════════════════════════════════════ -->
     <section class="features" aria-labelledby="features-title">
       <div class="container">
         <p class="section-label">Why ShareMeWeb</p>
@@ -338,74 +274,45 @@
         <div class="features-grid">
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">🔒</div>
-            <div>
-              <h4>End-to-End Encrypted</h4>
-              <p>WebRTC DTLS encryption is built in — your file is encrypted before it leaves your browser.</p>
-            </div>
+            <div><h4>End-to-End Encrypted</h4><p>WebRTC DTLS encryption is built in — your file is encrypted before it leaves your browser.</p></div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">☁️</div>
-            <div>
-              <h4>Zero Storage</h4>
-              <p>Files are never stored on any server. They go directly from sender to receiver's browser.</p>
-            </div>
+            <div><h4>Zero Storage</h4><p>Files are never stored on any server. They go directly from sender to receiver's browser.</p></div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">📏</div>
-            <div>
-              <h4>No Size Limits</h4>
-              <p>Transfer files of any size — limited only by available RAM on both devices.</p>
-            </div>
+            <div><h4>No Size Limits</h4><p>Transfer files of any size — limited only by available RAM on both devices.</p></div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">🆓</div>
-            <div>
-              <h4>Completely Free</h4>
-              <p>No accounts, no subscriptions, no fees. Always free for everyone.</p>
-            </div>
+            <div><h4>Completely Free</h4><p>No accounts, no subscriptions, no fees. Always free for everyone.</p></div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">📱</div>
-            <div>
-              <h4>Cross-Platform</h4>
-              <p>Works on any modern browser — Chrome, Firefox, Safari, Edge. No app installation.</p>
-            </div>
+            <div><h4>Cross-Platform</h4><p>Works on any modern browser — Chrome, Firefox, Safari, Edge. No app installation.</p></div>
           </div>
           <div class="feature-item">
             <div class="feature-icon" aria-hidden="true">⚡</div>
-            <div>
-              <h4>LAN Speed</h4>
-              <p>When both devices are on the same network, transfers happen at local network speeds.</p>
-            </div>
+            <div><h4>LAN Speed</h4><p>When both devices are on the same network, transfers happen at local network speeds.</p></div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- ═══════════════════════════════════════════════════════
-         AD SLOT — FOOTER
-         ═══════════════════════════════════════════════════════ -->
-    <!-- ADSENSE_FOOTER -->
+    <!-- AD FOOTER -->
     <div class="container">
-      <div class="ad-slot-wrap">
-      <!--
       <ins class="adsbygoogle ad-footer"
            style="display:block"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
+           data-ad-client="ca-pub-9097558719904278"
            data-ad-slot="3333333333"
            data-ad-format="auto"
            data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-      <div class="ad-slot ad-footer" aria-label="Advertisement"></div>
-    </div>
     </div>
 
   </main>
 
-  <!-- ═══════════════════════════════════════════════════════
-       FOOTER
-       ═══════════════════════════════════════════════════════ -->
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
@@ -456,16 +363,9 @@
     </div>
   </footer>
 
-  <!-- ═══════════════════════════════════════════════════════
-       SCRIPTS (order matters)
-       ═══════════════════════════════════════════════════════ -->
-  <!-- QRCode.js for generation -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <!-- jsQR for camera decoding -->
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
-  <!-- Socket.io client (matches server version) -->
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <!-- Our modules -->
   <script src="webrtc.js"></script>
   <script src="qr.js"></script>
   <script src="app.js"></script>
