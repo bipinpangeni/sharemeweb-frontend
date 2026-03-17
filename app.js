@@ -183,17 +183,43 @@ function initUploadZone() {
   if (UI.btnCopyMyLink) UI.btnCopyMyLink.addEventListener('click', copyMyLink);
 }
 
-/* ── Safe wrappers in case qr.js not loaded yet ─────────────── */
+/* ── Safe wrappers — fallbacks if qr.js not loaded yet ──────── */
 function safeFormatSize(bytes) {
   if (typeof formatSize === 'function') return formatSize(bytes);
-  if (bytes === 0) return '0 B';
-  const k = 1024, sizes = ['B','KB','MB','GB'];
+  if (!bytes || bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B','KB','MB','GB','TB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
 function safeFileEmoji(name) {
   if (typeof fileEmoji === 'function') return fileEmoji(name);
   return '📁';
+}
+function safeFormatSpeed(bps) {
+  if (typeof formatSpeed === 'function') return formatSpeed(bps);
+  return safeFormatSize(bps) + '/s';
+}
+function safeFormatETA(remaining, speed) {
+  if (typeof formatETA === 'function') return formatETA(remaining, speed);
+  if (!speed) return '—';
+  const s = Math.ceil(remaining / speed);
+  return s < 60 ? s + 's' : Math.ceil(s/60) + 'm';
+}
+async function safeGenerateQR(text, container, size) {
+  if (typeof generateQR === 'function') {
+    return generateQR(text, container, size);
+  }
+  // Fallback: show text if QRCode not loaded
+  container.innerHTML = '<p style="font-size:.7rem;word-break:break-all;padding:8px;">' + text + '</p>';
+}
+function safeDownloadBlob(blob, name) {
+  if (typeof downloadBlob === 'function') return downloadBlob(blob, name);
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
 /* ── Files selected (single or multiple) ───────────────────── */
@@ -314,7 +340,7 @@ async function startSenderSession() {
     /* Build session URL */
     const sessionURL = `${window.location.origin}/?s=${sessionId}`;
     UI.qrSection.classList.add('visible');
-    await generateQR(sessionURL, UI.qrContainer, 200);
+    await safeGenerateQR(sessionURL, UI.qrContainer, 200);
     UI.sessionLinkSpan.textContent = sessionURL;
     setStatus(UI.statusSend, 'Session ready — waiting for receivers…', 'waiting');
 
@@ -391,7 +417,7 @@ async function startReceiverFirstSession() {
     /* Show QR on receiver side */
     UI.myQRSection.style.display = 'block';
     UI.myQRSection.classList.add('visible');
-    await generateQR(sessionURL, UI.myQRContainer, 200);
+    await safeGenerateQR(sessionURL, UI.myQRContainer, 200);
     UI.mySessionLink.textContent = sessionURL;
     setStatus(UI.statusReceive, 'Show this QR to the sender — waiting…', 'waiting');
 
@@ -563,8 +589,8 @@ function updatePeerProgress(peerId, pct, bytes, speed, total) {
 
   if (bar)   bar.style.width         = pct + '%';
   if (pct_)  pct_.textContent        = pct + '%';
-  if (spd)   spd.textContent         = formatSpeed(speed);
-  if (eta)   eta.textContent         = formatETA(total - bytes, speed);
+  if (spd)   spd.textContent         = safeFormatSpeed(speed);
+  if (eta)   eta.textContent         = safeFormatETA(total - bytes, speed);
   if (badge) badge.textContent       = 'Transferring…';
   if (badge) badge.className         = 'peer-status-badge badge-transfer';
 }
@@ -606,11 +632,11 @@ function updateSendProgress(peerId, pct, bytes, speed, total) {
   const pctEl = $('#progress-pct-send');
   if (pctEl) pctEl.textContent = pct + '%';
   const spd = $('#progress-speed');
-  if (spd) spd.textContent = 'Speed: ' + formatSpeed(speed);
+  if (spd) spd.textContent = 'Speed: ' + safeFormatSpeed(speed);
   const sent = $('#progress-sent');
   if (sent) sent.textContent = formatSize(bytes) + ' / ' + formatSize(total);
   const eta = $('#progress-eta');
-  if (eta) eta.textContent = 'ETA: ' + formatETA(total - bytes, speed);
+  if (eta) eta.textContent = 'ETA: ' + safeFormatETA(total - bytes, speed);
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -665,8 +691,8 @@ function updateReceiveProgress(pct, bytes, speed, total) {
 
   if (UI.progressBarR)   UI.progressBarR.style.width   = displayPct + '%';
   if (UI.progressPctR)   UI.progressPctR.textContent   = displayPct + '%';
-  if (UI.progressSpeedR) UI.progressSpeedR.textContent = 'Speed: ' + formatSpeed(speed);
-  if (UI.progressETAR)   UI.progressETAR.textContent   = 'ETA: ' + formatETA(total - bytes, speed);
+  if (UI.progressSpeedR) UI.progressSpeedR.textContent = 'Speed: ' + safeFormatSpeed(speed);
+  if (UI.progressETAR)   UI.progressETAR.textContent   = 'ETA: ' + safeFormatETA(total - bytes, speed);
 }
 
 function handleFileComplete(blob, fileName) {
@@ -686,11 +712,11 @@ function handleFileComplete(blob, fileName) {
   }
 
   setStatus(UI.statusReceive, '✓ File received! Click Download to save.', 'done');
-  downloadBlob(blob, fileName); // auto-download
+  safeDownloadBlob(blob, fileName); // auto-download
 }
 
 function triggerDownload() {
-  if (downloadBlob_ && downloadName_) downloadBlob(downloadBlob_, downloadName_);
+  if (downloadBlob_ && downloadName_) safeDownloadBlob(downloadBlob_, downloadName_);
 }
 
 /* ── Copy buttons ──────────────────────────────────────────── */
