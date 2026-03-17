@@ -151,9 +151,8 @@ function checkURLForSession() {
 function initUploadZone() {
   if (!UI.uploadZone) return;
 
-  UI.uploadZone.addEventListener('click', (e) => {
-    if (e.target !== UI.fileInput) UI.fileInput.click();
-  });
+  // File input covers full zone with opacity:0 — clicks go directly to it
+  // No extra click handler needed — the change event handles everything
   UI.uploadZone.addEventListener('dragover', (e) => {
     e.preventDefault(); UI.uploadZone.classList.add('dragover');
   });
@@ -163,9 +162,11 @@ function initUploadZone() {
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) handleFilesSelected(files);
   });
-  UI.fileInput.addEventListener('change', () => {
-    const files = Array.from(UI.fileInput.files);
-    if (files.length > 0) handleFilesSelected(files);
+  UI.fileInput.addEventListener('change', (e) => {
+    const files = Array.from(e.target.files || UI.fileInput.files || []);
+    if (files.length > 0) {
+      handleFilesSelected(files);
+    }
   });
   UI.btnClear.addEventListener('click', clearFile);
   UI.btnGenerate.addEventListener('click', startSenderSession);
