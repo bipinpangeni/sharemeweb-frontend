@@ -6,6 +6,7 @@ const BUFFER_LOW       = 4  * 1024 * 1024;
 const PREFETCH_COUNT   = 4;
 
 const ICE_SERVERS = [
+  /* ── STUN servers ── */
   { urls: 'stun:stun.l.google.com:19302' },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
@@ -14,25 +15,21 @@ const ICE_SERVERS = [
   { urls: 'stun:stun.cloudflare.com:3478' },
   { urls: 'stun:stun.relay.metered.ca:80' },
 
+  /* ── TURN server (ExpressTURN) ── */
   {
-    urls:       'turn:a.relay.metered.ca:80',
-    username:   'REPLACE_WITH_YOUR_USERNAME',
-    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
+    urls: 'turn:free.expressturn.com:3478',
+    username: '00000002089102638',
+    credential: 'KdrJQCOERLu3h8x1R9rSdmxd7yA=',
   },
   {
-    urls:       'turn:a.relay.metered.ca:80?transport=tcp',
-    username:   'REPLACE_WITH_YOUR_USERNAME',
-    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
+    urls: 'turn:free.expressturn.com:3478?transport=tcp',
+    username: '00000002089102638',
+    credential: 'KdrJQCOERLu3h8x1R9rSdmxd7yA=',
   },
   {
-    urls:       'turn:a.relay.metered.ca:443',
-    username:   'REPLACE_WITH_YOUR_USERNAME',
-    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
-  },
-  {
-    urls:       'turns:a.relay.metered.ca:443',
-    username:   'REPLACE_WITH_YOUR_USERNAME',
-    credential: 'REPLACE_WITH_YOUR_CREDENTIAL',
+    urls: 'turns:free.expressturn.com:5349',
+    username: '00000002089102638',
+    credential: 'KdrJQCOERLu3h8x1R9rSdmxd7yA=',
   },
 ];
 
