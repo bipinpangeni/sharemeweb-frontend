@@ -13,7 +13,8 @@ function keepServerAwake() {
   fetch(SIGNALING_URL + '/health', { method: 'GET', mode: 'no-cors' }).catch(() => {});
 }
 keepServerAwake();
-setInterval(keepServerAwake, 10 * 60 * 1000);
+// Ping every 4 minutes to prevent Render from sleeping (sleeps at 15 mins)
+setInterval(keepServerAwake, 4 * 60 * 1000);
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -550,18 +551,46 @@ function copyMyLink() {
 /* ── SIGNALING ───────────────────────────────────────────────── */
 function connectSignaling() {
   if (typeof io === 'undefined') throw new Error('Socket.io not loaded.');
-  return io(SIGNALING_URL, {
-    transports: ['websocket'], timeout: 5000,
-    reconnectionAttempts: 2, reconnectionDelay: 500,
-    forceNew: true, upgrade: false,
+  const sock = io(SIGNALING_URL, {
+    transports:           ['websocket', 'polling'], // polling as fallback
+    timeout:              8000,
+    reconnectionAttempts: 10,       // more retries
+    reconnectionDelay:    1000,     // wait 1s between retries
+    reconnectionDelayMax: 5000,     // max 5s wait
+    randomizationFactor:  0.5,
+    forceNew:             false,    // reuse connection
+    upgrade:              true,     // allow upgrade to websocket
   });
+
+  // Log disconnections for debugging
+  sock.on('disconnect', (reason) => {
+    console.warn('[Socket] Disconnected:', reason);
+    if (reason === 'io server disconnect') {
+      // Server forced disconnect — reconnect manually
+      sock.connect();
+    }
+  });
+
+  sock.on('reconnect', (attempt) => {
+    console.log('[Socket] Reconnected after', attempt, 'attempts');
+  });
+
+  sock.on('reconnect_error', (err) => {
+    console.warn('[Socket] Reconnect error:', err.message);
+  });
+
+  return sock;
 }
 
-function waitFor(socket, event, timeoutMs = 4000) {
+function waitFor(socket, event, timeoutMs = 8000) {
   return new Promise((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error('Server took too long. Is it awake?')), timeoutMs);
+    const t = setTimeout(() => reject(new Error('Server took too long. Try refreshing the page.')), timeoutMs);
     socket.once(event, () => { clearTimeout(t); resolve(); });
-    socket.once('connect_error', (e) => { clearTimeout(t); reject(e); });
+    socket.once('connect_error', (e) => {
+      clearTimeout(t);
+      // Don't reject on first connect error — socket will retry automatically
+      console.warn('[Socket] Connect error:', e.message, '— retrying…');
+    });
   });
 }
 
