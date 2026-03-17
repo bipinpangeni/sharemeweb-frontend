@@ -1,12 +1,5 @@
 /**
  * app.js — ShareMeWeb v2
- * ─────────────────────────────────────────────────────────────
- * New features:
- *  1. Multi-receiver: sender can share to unlimited peers
- *  2. Live peer list showing each receiver's progress
- *  3. Receiver-first mode: receiver shows QR, sender scans
- *  4. Faster transfer feedback
- * ─────────────────────────────────────────────────────────────
  */
 
 'use strict';
@@ -16,101 +9,59 @@ const SIGNALING_URL = (() => {
   return meta ? meta.content : 'http://localhost:3001';
 })();
 
-/* ── Keep server awake — ping every 10 minutes ─────────────
-   Prevents Render free tier from sleeping (15 min timeout)
-   ─────────────────────────────────────────────────────────── */
 function keepServerAwake() {
-  fetch(SIGNALING_URL + '/health', { method: 'GET', mode: 'no-cors' })
-    .catch(() => {}); // Silent — just a ping
+  fetch(SIGNALING_URL + '/health', { method: 'GET', mode: 'no-cors' }).catch(() => {});
 }
-// Ping immediately on page load to wake server
 keepServerAwake();
-// Then ping every 10 minutes
 setInterval(keepServerAwake, 10 * 60 * 1000);
 
 const $ = (sel) => document.querySelector(sel);
 
-/* ── DOM refs ──────────────────────────────────────────────── */
 const UI = {
-  tabSend:         $('#tab-send'),
-  tabReceive:      $('#tab-receive'),
-  panelSend:       $('#panel-send'),
-  panelReceive:    $('#panel-receive'),
-
-  /* Send */
-  uploadZone:      $('#upload-zone'),
-  fileInput:       $('#file-input'),
-  fileInfoStrip:   $('#file-info-strip'),
-  fileIcon:        $('#file-icon'),
-  fileName:        $('#file-name'),
-  fileSize:        $('#file-size'),
-  btnClear:        $('#btn-clear'),
-  btnGenerate:     $('#btn-generate'),
-  qrSection:       $('#qr-section'),
-  qrContainer:     $('#qr-container'),
-  sessionLinkSpan: $('#session-link'),
-  btnCopy:         $('#btn-copy'),
-  statusSend:      $('#status-send'),
-  peerList:        $('#peer-list'),         // NEW: list of connected receivers
-  peerCount:       $('#peer-count'),        // NEW: "3 receivers connected"
-
-  /* Receive */
-  btnScanQR:       $('#btn-scan-qr'),
-  btnShowMyQR:     $('#btn-show-my-qr'),    // NEW: receiver generates QR
-  myQRSection:     $('#my-qr-section'),     // NEW: receiver's QR panel
-  myQRContainer:   $('#my-qr-container'),   // NEW
-  mySessionLink:   $('#my-session-link'),   // NEW
-  btnCopyMyLink:   $('#btn-copy-my-link'),  // NEW
-  cameraView:      $('#camera-view'),
-  cameraVideo:     $('#camera-video'),
-  btnCameraStop:   $('#btn-camera-stop'),
-  linkInput:       $('#link-input'),
-  btnConnect:      $('#btn-connect'),
-  statusReceive:   $('#status-receive'),
-  incomingFile:    $('#incoming-file'),
-  incomingName:    $('#incoming-name'),
-  incomingSize:    $('#incoming-size'),
-  progressReceive: $('#progress-receive'),
-  progressBarR:    $('#progress-bar-receive'),
-  progressPctR:    $('#progress-pct-receive'),
-  progressSpeedR:  $('#progress-speed-r'),
-  progressETAR:    $('#progress-eta-r'),
-  btnDownload:     $('#btn-download'),
-
-  hamburger:       $('#hamburger'),
-  navLinks:        $('#nav-links'),
+  tabSend: $('#tab-send'), tabReceive: $('#tab-receive'),
+  panelSend: $('#panel-send'), panelReceive: $('#panel-receive'),
+  uploadZone: $('#upload-zone'), fileInput: $('#file-input'),
+  fileInfoStrip: $('#file-info-strip'), fileIcon: $('#file-icon'),
+  fileName: $('#file-name'), fileSize: $('#file-size'),
+  btnClear: $('#btn-clear'), btnGenerate: $('#btn-generate'),
+  qrSection: $('#qr-section'), qrContainer: $('#qr-container'),
+  sessionLinkSpan: $('#session-link'), btnCopy: $('#btn-copy'),
+  statusSend: $('#status-send'), peerList: $('#peer-list'), peerCount: $('#peer-count'),
+  btnScanQR: $('#btn-scan-qr'), btnShowMyQR: $('#btn-show-my-qr'),
+  myQRSection: $('#my-qr-section'), myQRContainer: $('#my-qr-container'),
+  mySessionLink: $('#my-session-link'), btnCopyMyLink: $('#btn-copy-my-link'),
+  cameraView: $('#camera-view'), cameraVideo: $('#camera-video'),
+  btnCameraStop: $('#btn-camera-stop'), linkInput: $('#link-input'),
+  btnConnect: $('#btn-connect'), statusReceive: $('#status-receive'),
+  incomingFile: $('#incoming-file'), incomingName: $('#incoming-name'),
+  incomingSize: $('#incoming-size'), progressReceive: $('#progress-receive'),
+  progressBarR: $('#progress-bar-receive'), progressPctR: $('#progress-pct-receive'),
+  progressSpeedR: $('#progress-speed-r'), progressETAR: $('#progress-eta-r'),
+  btnDownload: $('#btn-download'), hamburger: $('#hamburger'), navLinks: $('#nav-links'),
 };
 
-/* ── State ─────────────────────────────────────────────────── */
 let selectedFile   = null;
-let multiSender    = null;   // MultiSender instance (sender side)
-let rtcReceive     = null;   // ShareDropRTC instance (receiver side)
+let selectedFiles  = [];
+let currentFileIndex = 0;
+let multiSender    = null;
+let rtcReceive     = null;
 let socket         = null;
 let sessionId      = null;
 let downloadBlob_  = null;
 let downloadName_  = '';
 let scanner        = null;
-let sessionMode    = 'sender-first'; // 'sender-first' | 'receiver-first'
+let sessionMode    = 'sender-first';
 const offCanvas    = document.createElement('canvas');
 
-/* ══════════════════════════════════════════════════════════════
-   INIT
-   ══════════════════════════════════════════════════════════════ */
 document.addEventListener('DOMContentLoaded', () => {
-  initNav();
-  initTabs();
-  initUploadZone();
-  checkURLForSession();
-  initContactForm();
+  initNav(); initTabs(); initUploadZone(); checkURLForSession(); initContactForm();
 });
 
-/* ── Nav ───────────────────────────────────────────────────── */
 function initNav() {
   if (!UI.hamburger) return;
   UI.hamburger.addEventListener('click', () => UI.navLinks.classList.toggle('open'));
 }
 
-/* ── Tabs ──────────────────────────────────────────────────── */
 function initTabs() {
   if (!UI.tabSend) return;
   UI.tabSend.addEventListener('click',    () => switchTab('send'));
@@ -125,37 +76,21 @@ function switchTab(tab) {
   UI.panelReceive.classList.toggle('active', !s);
 }
 
-/* ── Auto-detect session in URL ────────────────────────────── */
 function checkURLForSession() {
   const params = new URLSearchParams(window.location.search);
-  const sid    = params.get('s');
-  const mode   = params.get('mode'); // 'rf' = receiver-first
-
+  const sid = params.get('s');
+  const mode = params.get('mode');
   if (sid && UI.linkInput) {
     UI.linkInput.value = window.location.href;
     switchTab('receive');
-
-    if (mode === 'rf') {
-      // Receiver-first: this is the SENDER scanning receiver's QR
-      setTimeout(() => connectAsSender(window.location.href), 400);
-    } else {
-      // Normal: this is the RECEIVER scanning sender's QR
-      setTimeout(() => connectToSession(window.location.href), 400);
-    }
+    if (mode === 'rf') setTimeout(() => connectAsSender(window.location.href), 400);
+    else               setTimeout(() => connectToSession(window.location.href), 400);
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   UPLOAD ZONE
-   ══════════════════════════════════════════════════════════════ */
 function initUploadZone() {
   if (!UI.uploadZone) return;
-
-  // File input covers full zone with opacity:0 — clicks go directly to it
-  // No extra click handler needed — the change event handles everything
-  UI.uploadZone.addEventListener('dragover', (e) => {
-    e.preventDefault(); UI.uploadZone.classList.add('dragover');
-  });
+  UI.uploadZone.addEventListener('dragover', (e) => { e.preventDefault(); UI.uploadZone.classList.add('dragover'); });
   UI.uploadZone.addEventListener('dragleave', () => UI.uploadZone.classList.remove('dragover'));
   UI.uploadZone.addEventListener('drop', (e) => {
     e.preventDefault(); UI.uploadZone.classList.remove('dragover');
@@ -164,26 +99,20 @@ function initUploadZone() {
   });
   UI.fileInput.addEventListener('change', (e) => {
     const files = Array.from(e.target.files || UI.fileInput.files || []);
-    if (files.length > 0) {
-      handleFilesSelected(files);
-    }
+    if (files.length > 0) handleFilesSelected(files);
   });
   UI.btnClear.addEventListener('click', clearFile);
   UI.btnGenerate.addEventListener('click', startSenderSession);
   UI.btnCopy.addEventListener('click', copySessionLink);
-
-  /* Receive side */
-  if (UI.btnScanQR)    UI.btnScanQR.addEventListener('click', startCameraScanner);
+  if (UI.btnScanQR)     UI.btnScanQR.addEventListener('click', startCameraScanner);
   if (UI.btnCameraStop) UI.btnCameraStop.addEventListener('click', stopCameraScanner);
-  if (UI.btnConnect)   UI.btnConnect.addEventListener('click', () => connectToSession(UI.linkInput.value.trim()));
-  if (UI.btnDownload)  UI.btnDownload.addEventListener('click', triggerDownload);
-
-  /* NEW: Receiver-first button */
-  if (UI.btnShowMyQR)  UI.btnShowMyQR.addEventListener('click', startReceiverFirstSession);
+  if (UI.btnConnect)    UI.btnConnect.addEventListener('click', () => connectToSession(UI.linkInput.value.trim()));
+  if (UI.btnDownload)   UI.btnDownload.addEventListener('click', triggerDownload);
+  if (UI.btnShowMyQR)   UI.btnShowMyQR.addEventListener('click', startReceiverFirstSession);
   if (UI.btnCopyMyLink) UI.btnCopyMyLink.addEventListener('click', copyMyLink);
 }
 
-/* ── Safe wrappers — fallbacks if qr.js not loaded yet ──────── */
+/* ── Safe wrappers ───────────────────────────────────────────── */
 function safeFormatSize(bytes) {
   if (typeof formatSize === 'function') return formatSize(bytes);
   if (!bytes || bytes === 0) return '0 B';
@@ -206,10 +135,7 @@ function safeFormatETA(remaining, speed) {
   return s < 60 ? s + 's' : Math.ceil(s/60) + 'm';
 }
 async function safeGenerateQR(text, container, size) {
-  if (typeof generateQR === 'function') {
-    return generateQR(text, container, size);
-  }
-  // Fallback: show text if QRCode not loaded
+  if (typeof generateQR === 'function') return generateQR(text, container, size);
   container.innerHTML = '<p style="font-size:.7rem;word-break:break-all;padding:8px;">' + text + '</p>';
 }
 function safeDownloadBlob(blob, name) {
@@ -222,99 +148,79 @@ function safeDownloadBlob(blob, name) {
   setTimeout(() => URL.revokeObjectURL(url), 3000);
 }
 
-/* ── Files selected (single or multiple) ───────────────────── */
+/* ── Multiple files — sent ONE BY ONE, no zipping ───────────── */
 async function handleFilesSelected(files) {
   if (!files || files.length === 0) return;
 
+  selectedFiles    = Array.from(files);
+  currentFileIndex = 0;
+  selectedFile     = selectedFiles[0];
+
   if (files.length === 1) {
-    // Single file — send directly
-    selectedFile = files[0];
     UI.fileIcon.textContent = safeFileEmoji(files[0].name);
     UI.fileName.textContent = files[0].name;
     UI.fileSize.textContent = safeFormatSize(files[0].size);
   } else {
-    // Multiple files — zip them together
-    setStatus(UI.statusSend, '📦 Zipping ' + files.length + ' files…', 'waiting');
-    UI.btnGenerate.disabled = true;
-
-    try {
-      if (typeof JSZip === 'undefined') throw new Error('JSZip not loaded');
-
-      const zip = new JSZip();
-      for (const file of files) {
-        zip.file(file.name, file);
-      }
-
-      const blob = await zip.generateAsync({
-        type:               'blob',
-        compression:        'DEFLATE',
-        compressionOptions: { level: 6 },
-        // Progress feedback while zipping
-        onUpdate: (meta) => {
-          const pct = Math.round(meta.percent);
-          setStatus(UI.statusSend, '📦 Zipping files… ' + pct + '%', 'waiting');
-        }
-      });
-
-      // Create a File object from the zip blob
-      const zipName = 'sharemeweb-files-' + files.length + '.zip';
-      selectedFile  = new File([blob], zipName, { type: 'application/zip' });
-
-      UI.fileIcon.textContent = '🗜️';
-      UI.fileName.textContent = zipName + ' (' + files.length + ' files)';
-      UI.fileSize.textContent = safeFormatSize(blob.size);
-      setStatus(UI.statusSend, '✓ ' + files.length + ' files zipped — ready to send!', 'connect');
-
-    } catch (err) {
-      setStatus(UI.statusSend, 'Zip error: ' + err.message, 'error');
-      return;
-    }
+    const totalSize = selectedFiles.reduce((s, f) => s + f.size, 0);
+    UI.fileIcon.textContent = '📂';
+    UI.fileName.textContent = files.length + ' files selected';
+    UI.fileSize.textContent = safeFormatSize(totalSize) + ' total';
+    renderFileList(selectedFiles);
   }
 
   UI.fileInfoStrip.classList.add('visible');
   UI.btnGenerate.disabled = false;
   UI.qrSection.classList.remove('visible');
+  setStatus(UI.statusSend, '', '');
   resetPeerList();
-
-  // Show file list if multiple
-  if (files.length > 1) renderFileList(files);
 }
 
-/* ── Render list of selected files ─────────────────────────── */
 function renderFileList(files) {
   const list = $('#selected-files-list');
   if (!list) return;
   list.innerHTML = '';
   list.style.display = 'block';
-  Array.from(files).forEach(f => {
+  Array.from(files).forEach((f, i) => {
     const item = document.createElement('div');
     item.className = 'file-list-item';
-    item.innerHTML = `<span>${safeFileEmoji(f.name)} ${f.name}</span><span class="file-list-size">${safeFormatSize(f.size)}</span>`;
+    item.id = 'file-list-item-' + i;
+    item.innerHTML = `
+      <span style="display:flex;align-items:center;gap:6px;min-width:0;overflow:hidden;">
+        <span id="file-status-${i}">${i === 0 ? '📤' : '⏳'}</span>
+        <span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${safeFileEmoji(f.name)} ${f.name}</span>
+      </span>
+      <span class="file-list-size">${safeFormatSize(f.size)}</span>`;
     list.appendChild(item);
   });
 }
 
+function updateFileListStatus(index, status) {
+  const el   = $('#file-status-' + index);
+  const item = $('#file-list-item-' + index);
+  if (!el) return;
+  const icons = { sending: '📤', done: '✅', waiting: '⏳' };
+  el.textContent = icons[status] || status;
+  if (item && status === 'done')    item.style.opacity = '0.6';
+  if (item && status === 'sending') item.style.background = 'var(--accent-light)';
+}
+
 function clearFile() {
-  selectedFile = null;
+  selectedFile = null; selectedFiles = []; currentFileIndex = 0;
   UI.fileInput.value = '';
   UI.fileInfoStrip.classList.remove('visible');
   UI.btnGenerate.disabled = true;
   UI.qrSection.classList.remove('visible');
   setStatus(UI.statusSend, '', '');
   resetPeerList();
-  // Clear file list
   const list = $('#selected-files-list');
   if (list) { list.innerHTML = ''; list.style.display = 'none'; }
   if (multiSender) { multiSender.destroyAll(); multiSender = null; }
   if (socket)      { socket.disconnect(); socket = null; }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   SENDER-FIRST FLOW
-   ══════════════════════════════════════════════════════════════ */
+/* ── SENDER FLOW ─────────────────────────────────────────────── */
 async function startSenderSession() {
   if (!selectedFile) return;
-
   sessionMode = 'sender-first';
   UI.btnGenerate.disabled = true;
   UI.btnGenerate.innerHTML = '<span class="spinner"></span> Connecting…';
@@ -323,115 +229,95 @@ async function startSenderSession() {
   try {
     socket    = connectSignaling();
     sessionId = generateId();
-
     setStatus(UI.statusSend, '🔗 Connecting to server…', 'waiting');
     await waitFor(socket, 'connect', 4000);
     setStatus(UI.statusSend, '✓ Server connected — generating QR…', 'connect');
     socket.emit('create-session', { sessionId, mode: 'sender-first' });
 
-    /* Create MultiSender — handles all incoming receivers */
     multiSender = new MultiSender(selectedFile, {
       onPeerProgress: (pid, pct, bytes, speed, total) => updatePeerProgress(pid, pct, bytes, speed, total),
-      onPeerComplete: (pid) => markPeerDone(pid),
+      onPeerComplete: (pid) => {
+        markPeerDone(pid);
+        updateFileListStatus(currentFileIndex, 'done');
+        currentFileIndex++;
+        if (currentFileIndex < selectedFiles.length) {
+          const nextFile = selectedFiles[currentFileIndex];
+          selectedFile = nextFile;
+          multiSender._file = nextFile;
+          multiSender._peers.forEach(peer => { peer._file = nextFile; peer._offset = 0; });
+          UI.fileIcon.textContent = safeFileEmoji(nextFile.name);
+          UI.fileName.textContent = '(' + (currentFileIndex+1) + '/' + selectedFiles.length + ') ' + nextFile.name;
+          UI.fileSize.textContent = safeFormatSize(nextFile.size);
+          updateFileListStatus(currentFileIndex, 'sending');
+          setStatus(UI.statusSend, '📤 Sending file ' + (currentFileIndex+1) + ' of ' + selectedFiles.length + '…', 'transfer');
+        } else if (selectedFiles.length > 1) {
+          setStatus(UI.statusSend, '✅ All ' + selectedFiles.length + ' files sent!', 'done');
+        }
+      },
       onPeerStatus:   (pid, msg, type) => updatePeerStatus(pid, msg, type),
       onIceCandidate: (pid, cand) => socket.emit('ice-candidate', { sessionId, candidate: cand, role: 'sender', peerId: pid }),
     });
 
-    /* Build session URL */
     const sessionURL = `${window.location.origin}/?s=${sessionId}`;
     UI.qrSection.classList.add('visible');
     await safeGenerateQR(sessionURL, UI.qrContainer, 200);
     UI.sessionLinkSpan.textContent = sessionURL;
     setStatus(UI.statusSend, 'Session ready — waiting for receivers…', 'waiting');
 
-    /* ── Handle each new receiver joining ─────────────────── */
     socket.on('peer-joined', async ({ peerId }) => {
       const peerRtc = multiSender.addPeer(peerId);
       addPeerCard(peerId);
-
-      /* Create a fresh WebRTC offer for this specific receiver */
       const offer = await peerRtc.createOffer();
       socket.emit('offer', { sessionId, sdp: offer, peerId });
-
-      updatePeerStatus(peerId, 'Offer sent — waiting for answer…', 'waiting');
+      updatePeerStatus(peerId, 'Offer sent…', 'waiting');
     });
-
     socket.on('answer', async ({ sdp, peerId }) => {
       const peerRtc = multiSender.getPeer(peerId);
       if (peerRtc) await peerRtc.handleAnswer(sdp);
     });
-
     socket.on('ice-candidate', async ({ candidate, role, peerId }) => {
       if (role === 'receiver') {
         const peerRtc = multiSender.getPeer(peerId);
         if (peerRtc) await peerRtc.addIceCandidate(candidate);
       }
     });
-
-    socket.on('peer-left', ({ peerId }) => {
-      markPeerLeft(peerId);
-    });
-
+    socket.on('peer-left', ({ peerId }) => markPeerLeft(peerId));
     socket.on('error', (msg) => setStatus(UI.statusSend, 'Error: ' + msg, 'error'));
 
   } catch (err) {
     setStatus(UI.statusSend, 'Failed: ' + err.message, 'error');
-    console.error(err);
   } finally {
     UI.btnGenerate.disabled = false;
     UI.btnGenerate.textContent = '🔄 Regenerate';
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   RECEIVER-FIRST FLOW
-   Receiver generates QR code → sender scans it → sender picks file
-   ══════════════════════════════════════════════════════════════ */
+/* ── RECEIVER-FIRST FLOW ─────────────────────────────────────── */
 async function startReceiverFirstSession() {
   sessionMode = 'receiver-first';
   UI.btnShowMyQR.disabled = true;
   UI.btnShowMyQR.innerHTML = '<span class="spinner"></span> Generating…';
-
   try {
-    socket    = connectSignaling();
-    sessionId = generateId();
-
+    socket = connectSignaling(); sessionId = generateId();
     await waitFor(socket, 'connect', 6000);
     socket.emit('create-session', { sessionId, mode: 'receiver-first' });
-
-    /* Receiver creates the WebRTC offer */
     rtcReceive = new ShareDropRTC({
-      onProgress:    updateReceiveProgress,
-      onComplete:    handleFileComplete,
-      onStatus:      (msg, type) => setStatus(UI.statusReceive, msg, type),
-      onFileInfo:    showIncomingFile,
-      onIceCandidate:(cand) => socket.emit('ice-candidate', { sessionId, candidate: cand, role: 'receiver' }),
+      onProgress: updateReceiveProgress, onComplete: handleFileComplete,
+      onStatus: (msg, type) => setStatus(UI.statusReceive, msg, type),
+      onFileInfo: showIncomingFile,
+      onIceCandidate: (cand) => socket.emit('ice-candidate', { sessionId, candidate: cand, role: 'receiver' }),
     });
-
     const offer = await rtcReceive.createReceiverOffer();
     socket.emit('offer', { sessionId, sdp: offer });
-
-    /* Build session URL with mode flag */
     const sessionURL = `${window.location.origin}/?s=${sessionId}&mode=rf`;
-
-    /* Show QR on receiver side */
     UI.myQRSection.style.display = 'block';
     UI.myQRSection.classList.add('visible');
     await safeGenerateQR(sessionURL, UI.myQRContainer, 200);
     UI.mySessionLink.textContent = sessionURL;
     setStatus(UI.statusReceive, 'Show this QR to the sender — waiting…', 'waiting');
-
-    /* Handle sender's answer */
-    socket.on('answer', async ({ sdp }) => {
-      await rtcReceive.handleSenderAnswer(sdp);
-    });
-
-    socket.on('ice-candidate', async ({ candidate, role }) => {
-      if (role === 'sender') await rtcReceive.addIceCandidate(candidate);
-    });
-
+    socket.on('answer', async ({ sdp }) => { await rtcReceive.handleSenderAnswer(sdp); });
+    socket.on('ice-candidate', async ({ candidate, role }) => { if (role === 'sender') await rtcReceive.addIceCandidate(candidate); });
     socket.on('error', (msg) => setStatus(UI.statusReceive, 'Error: ' + msg, 'error'));
-
   } catch (err) {
     setStatus(UI.statusReceive, 'Failed: ' + err.message, 'error');
   } finally {
@@ -440,22 +326,13 @@ async function startReceiverFirstSession() {
   }
 }
 
-/* Sender scans receiver's QR code */
 async function connectAsSender(rawLink) {
   let sid;
-  try { sid = new URL(rawLink).searchParams.get('s'); }
-  catch(_) { sid = rawLink.trim(); }
-
+  try { sid = new URL(rawLink).searchParams.get('s'); } catch(_) { sid = rawLink.trim(); }
   if (!sid) { setStatus(UI.statusReceive, 'Invalid link.', 'error'); return; }
-
-  // Switch to send tab and prompt file selection
   switchTab('send');
   setStatus(UI.statusSend, '📱 Receiver QR scanned! Now select a file to send.', 'waiting');
-
-  // Store pending session for when sender picks file
   window._pendingReceiverSession = sid;
-
-  // Override generate button behavior for this one-time session
   const origHandler = UI.btnGenerate.onclick;
   UI.btnGenerate.onclick = async () => {
     if (!selectedFile) return;
@@ -466,16 +343,13 @@ async function connectAsSender(rawLink) {
 }
 
 async function sendToReceiverFirst(sid) {
-  sessionId   = sid;
-  sessionMode = 'receiver-first';
+  sessionId = sid; sessionMode = 'receiver-first';
   UI.btnGenerate.disabled = true;
   UI.btnGenerate.innerHTML = '<span class="spinner"></span> Connecting…';
-
   try {
     socket = connectSignaling();
     await waitFor(socket, 'connect', 6000);
     socket.emit('join-session', { sessionId, role: 'sender' });
-
     socket.on('offer', async ({ sdp }) => {
       const rtcSend = new ShareDropRTC({
         onProgress: (pct, bytes, speed, total) => updateSendProgress('single', pct, bytes, speed, total),
@@ -484,15 +358,9 @@ async function sendToReceiverFirst(sid) {
         onIceCandidate: (cand) => socket.emit('ice-candidate', { sessionId, candidate: cand, role: 'sender' }),
       });
       rtcSend.setFile(selectedFile);
-
       const answer = await rtcSend.answerReceiverOffer(sdp);
       socket.emit('answer', { sessionId, sdp: answer });
     });
-
-    socket.on('ice-candidate', async ({ candidate, role }) => {
-      // handled in ShareDropRTC
-    });
-
   } catch (err) {
     setStatus(UI.statusSend, 'Failed: ' + err.message, 'error');
   } finally {
@@ -501,63 +369,42 @@ async function sendToReceiverFirst(sid) {
   }
 }
 
-/* ══════════════════════════════════════════════════════════════
-   RECEIVER FLOW (normal — scanning sender's QR)
-   ══════════════════════════════════════════════════════════════ */
+/* ── RECEIVER FLOW ───────────────────────────────────────────── */
 function connectToSession(rawLink) {
   let sid;
-  try { sid = new URL(rawLink).searchParams.get('s'); }
-  catch(_) { sid = rawLink.trim(); }
-
+  try { sid = new URL(rawLink).searchParams.get('s'); } catch(_) { sid = rawLink.trim(); }
   if (!sid) { setStatus(UI.statusReceive, 'Invalid link.', 'error'); return; }
-
   sessionId = sid;
   const peerId = generateId();
   setStatus(UI.statusReceive, '⚡ Waking up server…', 'waiting');
-
   socket = connectSignaling();
-
   socket.on('connect', () => {
     setStatus(UI.statusReceive, '🔗 Joining session…', 'waiting');
     socket.emit('join-session', { sessionId, peerId });
   });
-
   socket.on('offer', async ({ sdp }) => {
     rtcReceive = new ShareDropRTC({
-      onProgress:    updateReceiveProgress,
-      onComplete:    handleFileComplete,
-      onStatus:      (msg, type) => setStatus(UI.statusReceive, msg, type),
-      onFileInfo:    showIncomingFile,
-      onIceCandidate:(cand) => socket.emit('ice-candidate', { sessionId, candidate: cand, role: 'receiver', peerId }),
+      onProgress: updateReceiveProgress, onComplete: handleFileComplete,
+      onStatus: (msg, type) => setStatus(UI.statusReceive, msg, type),
+      onFileInfo: showIncomingFile,
+      onIceCandidate: (cand) => socket.emit('ice-candidate', { sessionId, candidate: cand, role: 'receiver', peerId }),
     });
-
     const answer = await rtcReceive.createAnswer(sdp);
     socket.emit('answer', { sessionId, sdp: answer, peerId });
   });
-
   socket.on('ice-candidate', async ({ candidate, role }) => {
     if (role === 'sender' && rtcReceive) await rtcReceive.addIceCandidate(candidate);
   });
-
-  socket.on('session-not-found', () => {
-    setStatus(UI.statusReceive, 'Session not found or expired.', 'error');
-  });
-
-  socket.on('connect_error', () => {
-    setStatus(UI.statusReceive, 'Cannot reach server. Check your connection.', 'error');
-  });
+  socket.on('session-not-found', () => setStatus(UI.statusReceive, 'Session not found or expired.', 'error'));
+  socket.on('connect_error', () => setStatus(UI.statusReceive, 'Cannot reach server.', 'error'));
 }
 
-/* ══════════════════════════════════════════════════════════════
-   PEER LIST UI (multi-receiver display on sender side)
-   ══════════════════════════════════════════════════════════════ */
+/* ── PEER LIST ───────────────────────────────────────────────── */
 function addPeerCard(peerId) {
   if (!UI.peerList) return;
   UI.peerList.classList.add('visible');
-
   const card = document.createElement('div');
-  card.className = 'peer-card fade-in';
-  card.id        = 'peer-' + peerId;
+  card.className = 'peer-card fade-in'; card.id = 'peer-' + peerId;
   card.innerHTML = `
     <div class="peer-card-header">
       <span class="peer-icon">📱</span>
@@ -571,28 +418,23 @@ function addPeerCard(peerId) {
       <span id="ppct-${peerId}">0%</span>
       <span id="pspeed-${peerId}">—</span>
       <span id="peta-${peerId}">—</span>
-    </div>
-  `;
+    </div>`;
   UI.peerList.appendChild(card);
-
-  // Update counter
   const count = UI.peerList.children.length;
   if (UI.peerCount) UI.peerCount.textContent = count + ' receiver' + (count > 1 ? 's' : '') + ' connected';
 }
 
 function updatePeerProgress(peerId, pct, bytes, speed, total) {
-  const bar   = document.getElementById('pbar-' + peerId);
-  const pct_  = document.getElementById('ppct-' + peerId);
-  const spd   = document.getElementById('pspeed-' + peerId);
-  const eta   = document.getElementById('peta-' + peerId);
+  const bar = document.getElementById('pbar-' + peerId);
+  const pct_ = document.getElementById('ppct-' + peerId);
+  const spd = document.getElementById('pspeed-' + peerId);
+  const eta = document.getElementById('peta-' + peerId);
   const badge = document.getElementById('pbadge-' + peerId);
-
-  if (bar)   bar.style.width         = pct + '%';
-  if (pct_)  pct_.textContent        = pct + '%';
-  if (spd)   spd.textContent         = safeFormatSpeed(speed);
-  if (eta)   eta.textContent         = safeFormatETA(total - bytes, speed);
-  if (badge) badge.textContent       = 'Transferring…';
-  if (badge) badge.className         = 'peer-status-badge badge-transfer';
+  if (bar)   bar.style.width   = pct + '%';
+  if (pct_)  pct_.textContent  = pct + '%';
+  if (spd)   spd.textContent   = safeFormatSpeed(speed);
+  if (eta)   eta.textContent   = safeFormatETA(total - bytes, speed);
+  if (badge) { badge.textContent = 'Transferring…'; badge.className = 'peer-status-badge badge-transfer'; }
 }
 
 function updatePeerStatus(peerId, msg, type) {
@@ -601,9 +443,9 @@ function updatePeerStatus(peerId, msg, type) {
 }
 
 function markPeerDone(peerId) {
-  const card  = document.getElementById('peer-' + peerId);
+  const card = document.getElementById('peer-' + peerId);
   const badge = document.getElementById('pbadge-' + peerId);
-  const bar   = document.getElementById('pbar-' + peerId);
+  const bar = document.getElementById('pbar-' + peerId);
   if (card)  card.classList.add('peer-done');
   if (badge) { badge.textContent = '✓ Done'; badge.className = 'peer-status-badge badge-done'; }
   if (bar)   bar.style.width = '100%';
@@ -621,9 +463,7 @@ function resetPeerList() {
   if (UI.peerCount) UI.peerCount.textContent = '';
 }
 
-/* ── Send progress (single peer / receiver-first mode) ─────── */
 function updateSendProgress(peerId, pct, bytes, speed, total) {
-  // Show a simple progress bar on the send panel
   const prog = $('#progress-send');
   if (!prog) return;
   prog.classList.add('visible');
@@ -634,39 +474,25 @@ function updateSendProgress(peerId, pct, bytes, speed, total) {
   const spd = $('#progress-speed');
   if (spd) spd.textContent = 'Speed: ' + safeFormatSpeed(speed);
   const sent = $('#progress-sent');
-  if (sent) sent.textContent = formatSize(bytes) + ' / ' + formatSize(total);
+  if (sent) sent.textContent = safeFormatSize(bytes) + ' / ' + safeFormatSize(total);
   const eta = $('#progress-eta');
   if (eta) eta.textContent = 'ETA: ' + safeFormatETA(total - bytes, speed);
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CAMERA SCANNER
-   ══════════════════════════════════════════════════════════════ */
+/* ── CAMERA ──────────────────────────────────────────────────── */
 function startCameraScanner() {
   UI.cameraView.classList.add('visible');
-  scanner = new QRScanner(
-    UI.cameraVideo,
-    offCanvas,
+  scanner = new QRScanner(UI.cameraVideo, offCanvas,
     (text) => {
       UI.cameraView.classList.remove('visible');
       UI.linkInput.value = text;
-
-      // Check if this is a receiver-first QR (mode=rf)
       try {
-        const url  = new URL(text);
-        const mode = url.searchParams.get('mode');
-        if (mode === 'rf') {
-          connectAsSender(text);
-          return;
-        }
+        const url = new URL(text);
+        if (url.searchParams.get('mode') === 'rf') { connectAsSender(text); return; }
       } catch(_) {}
-
       connectToSession(text);
     },
-    (err) => {
-      UI.cameraView.classList.remove('visible');
-      setStatus(UI.statusReceive, 'Camera error: ' + err.message, 'error');
-    }
+    (err) => { UI.cameraView.classList.remove('visible'); setStatus(UI.statusReceive, 'Camera error: ' + err.message, 'error'); }
   );
   scanner.start();
 }
@@ -676,78 +502,58 @@ function stopCameraScanner() {
   UI.cameraView.classList.remove('visible');
 }
 
-/* ── Receive progress & completion ─────────────────────────── */
+/* ── RECEIVE ─────────────────────────────────────────────────── */
 function showIncomingFile(name, size) {
   if (UI.incomingFile) UI.incomingFile.classList.add('visible');
-  if (UI.incomingName) UI.incomingName.textContent = fileEmoji(name) + ' ' + name;
-  if (UI.incomingSize) UI.incomingSize.textContent = formatSize(size);
+  if (UI.incomingName) UI.incomingName.textContent = safeFileEmoji(name) + ' ' + name;
+  if (UI.incomingSize) UI.incomingSize.textContent = safeFormatSize(size);
 }
 
 function updateReceiveProgress(pct, bytes, speed, total) {
   if (UI.progressReceive) UI.progressReceive.classList.add('visible');
-
-  // Cap at 99% — only jump to 100% when file is FULLY assembled
   const displayPct = Math.min(pct, 99);
-
   if (UI.progressBarR)   UI.progressBarR.style.width   = displayPct + '%';
   if (UI.progressPctR)   UI.progressPctR.textContent   = displayPct + '%';
   if (UI.progressSpeedR) UI.progressSpeedR.textContent = 'Speed: ' + safeFormatSpeed(speed);
   if (UI.progressETAR)   UI.progressETAR.textContent   = 'ETA: ' + safeFormatETA(total - bytes, speed);
+  const label = $('#progress-label-r');
+  if (label) label.textContent = displayPct >= 99 ? 'Assembling file…' : 'Receiving…';
 }
 
 function handleFileComplete(blob, fileName) {
-  downloadBlob_ = blob;
-  downloadName_ = fileName;
-
-  // NOW show 100% — file fully assembled and ready to download
+  downloadBlob_ = blob; downloadName_ = fileName;
   if (UI.progressBarR)   UI.progressBarR.style.width   = '100%';
   if (UI.progressPctR)   UI.progressPctR.textContent   = '100%';
   if (UI.progressSpeedR) UI.progressSpeedR.textContent = '✓ Complete';
   if (UI.progressETAR)   UI.progressETAR.textContent   = 'Done!';
-
-  // Show download button
-  if (UI.btnDownload) {
-    UI.btnDownload.classList.remove('hidden');
-    UI.btnDownload.classList.add('visible');
-  }
-
+  const label = $('#progress-label-r');
+  if (label) label.textContent = 'Transfer complete!';
+  if (UI.btnDownload) { UI.btnDownload.classList.remove('hidden'); UI.btnDownload.classList.add('visible'); }
   setStatus(UI.statusReceive, '✓ File received! Click Download to save.', 'done');
-  safeDownloadBlob(blob, fileName); // auto-download
+  safeDownloadBlob(blob, fileName);
 }
 
 function triggerDownload() {
   if (downloadBlob_ && downloadName_) safeDownloadBlob(downloadBlob_, downloadName_);
 }
 
-/* ── Copy buttons ──────────────────────────────────────────── */
 function copySessionLink() {
   const link = UI.sessionLinkSpan.textContent;
-  navigator.clipboard.writeText(link).then(() => {
-    UI.btnCopy.textContent = '✓ Copied!';
-    setTimeout(() => (UI.btnCopy.textContent = 'Copy'), 2000);
-  });
+  navigator.clipboard.writeText(link).then(() => { UI.btnCopy.textContent = '✓ Copied!'; setTimeout(() => (UI.btnCopy.textContent = 'Copy'), 2000); });
 }
 
 function copyMyLink() {
   const link = UI.mySessionLink.textContent;
-  navigator.clipboard.writeText(link).then(() => {
-    UI.btnCopyMyLink.textContent = '✓ Copied!';
-    setTimeout(() => (UI.btnCopyMyLink.textContent = 'Copy'), 2000);
-  });
+  navigator.clipboard.writeText(link).then(() => { UI.btnCopyMyLink.textContent = '✓ Copied!'; setTimeout(() => (UI.btnCopyMyLink.textContent = 'Copy'), 2000); });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   SIGNALING
-   ══════════════════════════════════════════════════════════════ */
+/* ── SIGNALING ───────────────────────────────────────────────── */
 function connectSignaling() {
   if (typeof io === 'undefined') throw new Error('Socket.io not loaded.');
   return io(SIGNALING_URL, {
-    transports:           ['websocket'],  // WebSocket only — skip polling handshake
-    timeout:              5000,           // Fail fast — 5s not 10s
-    reconnectionAttempts: 2,              // Less retries = faster failure detection
-    reconnectionDelay:    500,            // Retry faster
-    forceNew:             true,           // Always fresh connection
-    upgrade:              false,          // Skip upgrade negotiation
+    transports: ['websocket'], timeout: 5000,
+    reconnectionAttempts: 2, reconnectionDelay: 500,
+    forceNew: true, upgrade: false,
   });
 }
 
@@ -759,9 +565,6 @@ function waitFor(socket, event, timeoutMs = 4000) {
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   CONTACT FORM
-   ══════════════════════════════════════════════════════════════ */
 function initContactForm() {
   const form = $('#contact-form');
   if (!form) return;
@@ -773,9 +576,6 @@ function initContactForm() {
   });
 }
 
-/* ══════════════════════════════════════════════════════════════
-   HELPERS
-   ══════════════════════════════════════════════════════════════ */
 function setStatus(el, msg, type) {
   if (!el || !msg) { if (el) el.innerHTML = ''; return; }
   const icons = { waiting: '⏳', connect: '🔗', transfer: '📤', done: '✅', error: '❌' };
