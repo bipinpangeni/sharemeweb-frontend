@@ -1,15 +1,3 @@
-/**
- * webrtc.js — ShareMeWeb WebRTC Engine v4
- * ─────────────────────────────────────────────────────────────
- * v4 fixes:
- *  - Added FREE TURN servers (fixes "connection failed" on
- *    different networks / mobile / strict NAT / firewalls)
- *  - Better connection state handling
- *  - Auto-retry on failure
- *  - Longer ICE gathering timeout
- * ─────────────────────────────────────────────────────────────
- */
-
 'use strict';
 
 const CHUNK_SIZE       = 512 * 1024;
@@ -17,37 +5,15 @@ const BUFFER_THRESHOLD = 16 * 1024 * 1024;
 const BUFFER_LOW       = 4  * 1024 * 1024;
 const PREFETCH_COUNT   = 4;
 
-/* ── ICE config with FREE TURN servers ────────────────────────
-   TURN servers relay traffic when direct P2P fails.
-   This fixes "connection failed" on:
-   - Different WiFi networks
-   - Mobile data
-   - Corporate firewalls
-   - Strict NAT routers
-   ─────────────────────────────────────────────────────────── */
-/* ─────────────────────────────────────────────────────────────
-   ICE SERVERS
-   IMPORTANT: Replace TURN credentials with your own from
-   https://dashboard.metered.ca/signup (free — 50GB/month)
-   Steps:
-   1. Sign up free at dashboard.metered.ca
-   2. Go to TURN Credentials
-   3. Copy username and credential
-   4. Replace below
-   ───────────────────────────────────────────────────────────── */
 const ICE_SERVERS = [
-  /* ── STUN servers (helps find direct path) ── */
-  { urls: 'stun:stun.l.google.com:19302'     },
-  { urls: 'stun:stun1.l.google.com:19302'    },
-  { urls: 'stun:stun2.l.google.com:19302'    },
-  { urls: 'stun:stun3.l.google.com:19302'    },
-  { urls: 'stun:stun4.l.google.com:19302'    },
-  { urls: 'stun:stun.cloudflare.com:3478'    },
-  { urls: 'stun:stun.relay.metered.ca:80'    },
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' },
+  { urls: 'stun:stun.cloudflare.com:3478' },
+  { urls: 'stun:stun.relay.metered.ca:80' },
 
-  /* ── TURN servers (relay when direct fails) ──
-     Get FREE credentials at dashboard.metered.ca
-     Replace username and credential below:        */
   {
     urls:       'turn:a.relay.metered.ca:80',
     username:   'REPLACE_WITH_YOUR_USERNAME',
@@ -95,11 +61,10 @@ class ShareDropRTC {
     this._offset        = 0;
   }
 
-  /* ── Create RTCPeerConnection ──────────────────────────────── */
   _createPeer() {
     const pc = new RTCPeerConnection({
       iceServers:         ICE_SERVERS,
-      iceTransportPolicy: 'all',      // allow TURN relay
+      iceTransportPolicy: 'all',
       bundlePolicy:       'max-bundle',
       rtcpMuxPolicy:      'require',
     });
@@ -128,19 +93,16 @@ class ShareDropRTC {
     return pc;
   }
 
-
-
-  /* ═══════════════════════════════════════════════════════════
-     SENDER SIDE
-     ═══════════════════════════════════════════════════════════ */
   setFile(file) { this._file = file; }
 
   async createOffer() {
     this._pc = this._createPeer();
+
     this._channel = this._pc.createDataChannel('file-transfer', {
-      ordered:        true,
+      ordered: true,
       maxRetransmits: null,
     });
+
     this._channel.binaryType = 'arraybuffer';
     this._channel.bufferedAmountLowThreshold = BUFFER_LOW;
     this._setupSenderChannel(this._channel);
@@ -148,6 +110,7 @@ class ShareDropRTC {
     const offer = await this._pc.createOffer();
     await this._pc.setLocalDescription(offer);
     await this._waitForICE();
+
     return this._pc.localDescription;
   }
 
@@ -159,24 +122,31 @@ class ShareDropRTC {
 
   async answerReceiverOffer(offer) {
     this._pc = this._createPeer();
+
     this._channel = this._pc.createDataChannel('file-transfer', { ordered: true });
     this._channel.binaryType = 'arraybuffer';
     this._channel.bufferedAmountLowThreshold = BUFFER_LOW;
+
     this._setupSenderChannel(this._channel);
+
     await this._pc.setRemoteDescription(new RTCSessionDescription(offer));
+
     const answer = await this._pc.createAnswer();
     await this._pc.setLocalDescription(answer);
     await this._waitForICE();
+
     return this._pc.localDescription;
   }
 
   async addIceCandidate(candidate) {
     if (!this._pc) return;
-    try { await this._pc.addIceCandidate(new RTCIceCandidate(candidate)); }
-    catch(e) { console.warn('ICE:', e.message); }
+    try {
+      await this._pc.addIceCandidate(new RTCIceCandidate(candidate));
+    } catch (e) {
+      console.warn('ICE:', e.message);
+    }
   }
 
-  /* ── Sender channel ────────────────────────────────────────── */
   _setupSenderChannel(ch) {
     ch.onopen = () => {
       this.onStatus('Connected — sending file…', 'transfer');
@@ -197,20 +167,21 @@ class ShareDropRTC {
 
   async _startTurboSend() {
     if (!this._file || !this._channel || this._sending) return;
+
     this._sending = true;
     this._offset  = this._offset || 0;
 
     const file      = this._file;
     const totalSize = file.size;
 
-    // Send metadata first
     if (this._offset === 0) {
       this._channel.send(JSON.stringify({
-        type:     'meta',
-        name:     file.name,
-        size:     file.size,
+        type: 'meta',
+        name: file.name,
+        size: file.size,
         mimeType: file.type || 'application/octet-stream',
       }));
+
       this._startTime = Date.now();
       this._lastTime  = this._startTime;
       this._lastBytes = 0;
@@ -223,11 +194,12 @@ class ShareDropRTC {
         return;
       }
 
-      // Pre-fetch multiple chunks in parallel
       const fetchPromises = [];
+
       for (let i = 0; i < PREFETCH_COUNT; i++) {
         const start = this._offset + (i * CHUNK_SIZE);
         if (start >= totalSize) break;
+
         const end = Math.min(start + CHUNK_SIZE, totalSize);
         fetchPromises.push(file.slice(start, end).arrayBuffer());
       }
@@ -236,6 +208,7 @@ class ShareDropRTC {
 
       for (const buffer of buffers) {
         if (!this._channel || this._channel.readyState !== 'open') return;
+
         this._channel.send(buffer);
         this._offset += buffer.byteLength;
 
@@ -243,46 +216,54 @@ class ShareDropRTC {
         const now   = Date.now();
         const dt    = Math.max((now - this._lastTime) / 1000, 0.001);
         const speed = (this._offset - this._lastBytes) / dt;
+
         this._lastTime  = now;
         this._lastBytes = this._offset;
+
         this.onProgress(pct, this._offset, speed, totalSize);
       }
     }
 
     this._channel.send(JSON.stringify({ type: 'end' }));
+
     this._sending = false;
     this._offset  = 0;
+
     this.onStatus('✓ File sent successfully!', 'done');
     this.onComplete();
   }
 
-  /* ═══════════════════════════════════════════════════════════
-     RECEIVER SIDE
-     ═══════════════════════════════════════════════════════════ */
   async createAnswer(offer) {
     this._pc = this._createPeer();
+
     this._pc.ondatachannel = (e) => {
       this._channel = e.channel;
       this._channel.binaryType = 'arraybuffer';
       this._setupReceiverChannel(this._channel);
     };
+
     await this._pc.setRemoteDescription(new RTCSessionDescription(offer));
+
     const answer = await this._pc.createAnswer();
     await this._pc.setLocalDescription(answer);
     await this._waitForICE();
+
     return this._pc.localDescription;
   }
 
   async createReceiverOffer() {
     this._pc = this._createPeer();
+
     this._pc.ondatachannel = (e) => {
       this._channel = e.channel;
       this._channel.binaryType = 'arraybuffer';
       this._setupReceiverChannel(this._channel);
     };
+
     const offer = await this._pc.createOffer();
     await this._pc.setLocalDescription(offer);
     await this._waitForICE();
+
     return this._pc.localDescription;
   }
 
@@ -299,16 +280,20 @@ class ShareDropRTC {
     ch.onmessage = (e) => {
       if (typeof e.data === 'string') {
         const msg = JSON.parse(e.data);
+
         if (msg.type === 'meta') {
           this._fileName     = msg.name;
           this._fileType     = msg.mimeType;
           this._expectedSize = msg.size;
-          this._startTime    = Date.now();
-          this._lastTime     = this._startTime;
-          this._lastBytes    = 0;
+
+          this._startTime = Date.now();
+          this._lastTime  = this._startTime;
+          this._lastBytes = 0;
+
           this.onFileInfo(msg.name, msg.size);
           this.onStatus('Receiving: ' + msg.name, 'transfer');
         }
+
         if (msg.type === 'end') this._assembleFile();
         return;
       }
@@ -320,8 +305,10 @@ class ShareDropRTC {
       const now   = Date.now();
       const dt    = Math.max((now - this._lastTime) / 1000, 0.001);
       const speed = (this._receivedSize - this._lastBytes) / dt;
+
       this._lastTime  = now;
       this._lastBytes = this._receivedSize;
+
       this.onProgress(pct, this._receivedSize, speed, this._expectedSize);
     };
 
@@ -331,50 +318,55 @@ class ShareDropRTC {
 
   _assembleFile() {
     const blob = new Blob(this._chunks, { type: this._fileType });
+
     this.onStatus('✓ Download ready!', 'done');
     this.onComplete(blob, this._fileName, this._expectedSize);
+
     this._chunks = [];
     setTimeout(() => this.destroy(), 5000);
   }
 
-  /* ── Helpers ──────────────────────────────────────────────── */
   _waitForICE() {
     return new Promise((resolve) => {
-      if (this._pc.iceGatheringState === 'complete') { resolve(); return; }
+      if (this._pc.iceGatheringState === 'complete') {
+        resolve();
+        return;
+      }
 
       let resolved = false;
-      const done = () => { if (!resolved) { resolved = true; resolve(); } };
 
-      // Resolve when gathering complete
+      const done = () => {
+        if (!resolved) {
+          resolved = true;
+          resolve();
+        }
+      };
+
       this._pc.onicegatheringstatechange = () => {
         if (this._pc.iceGatheringState === 'complete') done();
       };
 
-      // Also resolve when first candidate arrives (faster!)
       this._pc.onicecandidate = (e) => {
         if (e.candidate) {
           this.onIceCandidate(e.candidate);
-          // Start a short timer after first candidate — don't wait for all
           if (!resolved) setTimeout(done, 500);
         } else {
-          // null candidate = gathering complete
           done();
         }
       };
 
-      // Hard timeout fallback — 4 seconds max
       setTimeout(done, 4000);
     });
   }
 
   destroy() {
     try { if (this._channel) this._channel.close(); } catch(_) {}
-    try { if (this._pc)      this._pc.close();      } catch(_) {}
-    this._pc = null; this._channel = null;
+    try { if (this._pc) this._pc.close(); } catch(_) {}
+    this._pc = null;
+    this._channel = null;
   }
 }
 
-/* ── MultiSender ──────────────────────────────────────────── */
 class MultiSender {
   constructor(file, { onPeerProgress, onPeerComplete, onPeerStatus, onIceCandidate }) {
     this._file           = file;
@@ -388,20 +380,38 @@ class MultiSender {
   addPeer(peerId) {
     const rtc = new ShareDropRTC({
       peerId,
-      onProgress:    (pct, bytes, speed, total) => this._onPeerProgress(peerId, pct, bytes, speed, total),
-      onComplete:    ()                          => this._onPeerComplete(peerId),
-      onStatus:      (msg, type)                 => this._onPeerStatus(peerId, msg, type),
-      onIceCandidate:(cand)                      => this._onIceCandidate(peerId, cand),
+      onProgress:     (pct, bytes, speed, total) => this._onPeerProgress(peerId, pct, bytes, speed, total),
+      onComplete:     () => this._onPeerComplete(peerId),
+      onStatus:       (msg, type) => this._onPeerStatus(peerId, msg, type),
+      onIceCandidate: (cand) => this._onIceCandidate(peerId, cand),
     });
+
     rtc.setFile(this._file);
     this._peers.set(peerId, rtc);
+
     return rtc;
   }
 
-  getPeer(peerId)    { return this._peers.get(peerId); }
-  removePeer(peerId) { const r = this._peers.get(peerId); if(r){r.destroy(); this._peers.delete(peerId);} }
-  get peerCount()    { return this._peers.size; }
-  destroyAll()       { this._peers.forEach(r => r.destroy()); this._peers.clear(); }
+  getPeer(peerId) {
+    return this._peers.get(peerId);
+  }
+
+  removePeer(peerId) {
+    const r = this._peers.get(peerId);
+    if (r) {
+      r.destroy();
+      this._peers.delete(peerId);
+    }
+  }
+
+  get peerCount() {
+    return this._peers.size;
+  }
+
+  destroyAll() {
+    this._peers.forEach(r => r.destroy());
+    this._peers.clear();
+  }
 }
 
 window.ShareDropRTC = ShareDropRTC;
