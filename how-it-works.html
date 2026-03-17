@@ -2,11 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <link rel="shortcut icon" href="favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>How It Works — ShareMeWeb P2P File Transfer</title>
-  <meta name="description" content="Learn how ShareMeWeb uses WebRTC DataChannels and QR codes to enable instant, private, browser-to-browser file transfers without any uploads." />
-  <meta name="keywords" content="WebRTC file transfer how it works, P2P browser file sharing explained, WebRTC DataChannel, ICE STUN server, peer-to-peer encryption" />
+  <title>How to Share Files Online Free — ShareMeWeb File Transfer Guide</title>
+  <meta name="description" content="Learn how to share files online for free using ShareMeWeb. Transfer files instantly via QR code — no uploads, no account. Faster than WeTransfer, more private than cloud storage." />
+  <meta name="keywords" content="how to share file, how to share a file, share file link, file transfer, share files online free, quick file share, how to share files between devices" />
+  <meta name="signaling-url" content="https://sharemeweb-server.onrender.com" />
+  <meta name="theme-color" content="#2d6ef6" />
   <meta name="robots" content="index, follow" />
+  <meta property="og:type"        content="website" />
+  <meta property="og:url"         content="https://sharemeweb.com/how-it-works.html" />
+  <meta property="og:title"       content="How ShareMeWeb Works — WebRTC P2P File Transfer Explained" />
+  <meta property="og:description" content="Learn how ShareMeWeb uses WebRTC DataChannels and QR codes for instant peer-to-peer file sharing. No uploads, no servers, direct browser-to-browser transfer." />
+  <meta property="og:site_name"   content="ShareMeWeb" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="canonical" href="https://sharemeweb.com/how-it-works.html" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -22,14 +31,7 @@
   <header class="site-header">
     <div class="container header-inner">
       <a href="/" class="logo">
-        <span class="logo-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/>
-            <polyline points="16 6 12 2 8 6"/>
-            <line x1="12" y1="2" x2="12" y2="15"/>
-          </svg>
-        </span>
-        Share<span>MeWeb</span>
+        <img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" />
       </a>
       <nav aria-label="Main navigation">
         <ul class="nav-links" id="nav-links">
@@ -69,7 +71,7 @@
     <div class="page-hero">
       <div class="container">
         <span class="badge">Technical Deep Dive</span>
-        <h1>How ShareMeWeb Works</h1>
+        <h1>How to Share Files Online Free — Complete Guide</h1>
         <p>A plain-English explanation of the technology that makes instant, private file transfers possible — and the technical details for the curious.</p>
       </div>
     </div>
@@ -243,19 +245,44 @@
 
   </main>
 
-  <footer class="site-footer">
+  
+    <!-- SEO Content Section -->
+    <section style="padding:48px 0;background:var(--surface);border-top:1px solid var(--border);">
+      <div class="container">
+        <div class="prose-body" style="max-width:800px;margin:0 auto;">
+
+          <h2>ShareMeWeb vs WeTransfer — What's the Difference?</h2>
+          <p>Unlike WeTransfer and similar services, ShareMeWeb never uploads your files to any server. Files travel directly from your browser to the recipient's browser using WebRTC technology. This means faster transfers, complete privacy, and no file size limits.</p>
+
+          <h2>How to Share a File Online for Free</h2>
+          <p>Sharing files online for free has never been easier. With ShareMeWeb, you simply select your file, generate a QR code, and share the link. The receiver scans the QR code or opens the link, and the file transfers instantly. No account required, no waiting for uploads.</p>
+
+          <h2>Free File Transfer — No Upload Required</h2>
+          <p>Traditional file sharing services like WeTransfer, Dropbox, and Google Drive require you to upload your files to their servers first. ShareMeWeb eliminates this step entirely. Your file goes directly from your device to the recipient — making it the fastest free file transfer tool available.</p>
+
+          <h2>Quick Share Between Any Devices</h2>
+          <p>ShareMeWeb works as a quick share tool between any combination of devices — phone to laptop, Mac to PC, Android to iPhone. As long as both devices have a modern browser, ShareMeWeb works instantly without any app download.</p>
+
+          <h2>Private and Secure File Sharing</h2>
+          <p>Every file transfer on ShareMeWeb is end-to-end encrypted using WebRTC DTLS protocol. This means your files are protected during the entire transfer. No third party, including ShareMeWeb, can access your files.</p>
+
+        </div>
+      </div>
+    </section>
+
+<footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
         <div class="footer-brand">
           <a href="/" class="logo"><span class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span>Share<span>MeWeb</span></a>
-          <p>Instant peer-to-peer file sharing. No uploads, no storage, no limits.</p>
+          <p>Instant free file sharing. No uploads, no storage, no limits.</p>
         </div>
         <div><p class="footer-title">Product</p><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="how-it-works.html">How It Works</a></li><li><a href="about.html">About Us</a></li></ul></div>
         <div><p class="footer-title">Support</p><ul class="footer-links"><li><a href="contact.html">Contact</a></li><li><a href="how-it-works.html#faq">FAQ</a></li></ul></div>
         <div><p class="footer-title">Legal</p><ul class="footer-links"><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li></ul></div>
       </div>
       <div class="footer-bottom">
-        <p>&copy; 2025 ShareMeWeb. All rights reserved.</p>
+        <p>&copy; 2026 ShareMeWeb. All rights reserved.</p>
         <div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></div>
       </div>
     </div>
