@@ -183,6 +183,19 @@ function initUploadZone() {
   if (UI.btnCopyMyLink) UI.btnCopyMyLink.addEventListener('click', copyMyLink);
 }
 
+/* ── Safe wrappers in case qr.js not loaded yet ─────────────── */
+function safeFormatSize(bytes) {
+  if (typeof formatSize === 'function') return formatSize(bytes);
+  if (bytes === 0) return '0 B';
+  const k = 1024, sizes = ['B','KB','MB','GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+function safeFileEmoji(name) {
+  if (typeof fileEmoji === 'function') return fileEmoji(name);
+  return '📁';
+}
+
 /* ── Files selected (single or multiple) ───────────────────── */
 async function handleFilesSelected(files) {
   if (!files || files.length === 0) return;
@@ -190,9 +203,9 @@ async function handleFilesSelected(files) {
   if (files.length === 1) {
     // Single file — send directly
     selectedFile = files[0];
-    UI.fileIcon.textContent = fileEmoji(files[0].name);
+    UI.fileIcon.textContent = safeFileEmoji(files[0].name);
     UI.fileName.textContent = files[0].name;
-    UI.fileSize.textContent = formatSize(files[0].size);
+    UI.fileSize.textContent = safeFormatSize(files[0].size);
   } else {
     // Multiple files — zip them together
     setStatus(UI.statusSend, '📦 Zipping ' + files.length + ' files…', 'waiting');
@@ -223,7 +236,7 @@ async function handleFilesSelected(files) {
 
       UI.fileIcon.textContent = '🗜️';
       UI.fileName.textContent = zipName + ' (' + files.length + ' files)';
-      UI.fileSize.textContent = formatSize(blob.size);
+      UI.fileSize.textContent = safeFormatSize(blob.size);
       setStatus(UI.statusSend, '✓ ' + files.length + ' files zipped — ready to send!', 'connect');
 
     } catch (err) {
@@ -250,7 +263,7 @@ function renderFileList(files) {
   Array.from(files).forEach(f => {
     const item = document.createElement('div');
     item.className = 'file-list-item';
-    item.innerHTML = `<span>${fileEmoji(f.name)} ${f.name}</span><span class="file-list-size">${formatSize(f.size)}</span>`;
+    item.innerHTML = `<span>${safeFileEmoji(f.name)} ${f.name}</span><span class="file-list-size">${safeFormatSize(f.size)}</span>`;
     list.appendChild(item);
   });
 }
