@@ -20,15 +20,26 @@ const HEARTBEAT_MS     = 5000;            // Ping every 5s (paused during transf
 const MAX_RETRIES      = 5;
 
 const ICE_SERVERS = [
+  /* STUN servers */
   { urls: 'stun:stun.l.google.com:19302'  },
   { urls: 'stun:stun1.l.google.com:19302' },
   { urls: 'stun:stun2.l.google.com:19302' },
   { urls: 'stun:stun3.l.google.com:19302' },
   { urls: 'stun:stun4.l.google.com:19302' },
   { urls: 'stun:stun.cloudflare.com:3478' },
-  { urls: 'stun:stun.relay.metered.ca:80' },
-  // Add your TURN credentials here if you have them:
-  // { urls: 'turn:a.relay.metered.ca:80', username: 'YOUR_USER', credential: 'YOUR_PASS' },
+  { urls: 'stun:free.expressturn.com:3478' },
+
+  /* ExpressTURN — relay for different networks */
+  {
+    urls:       'turn:free.expressturn.com:3478',
+    username:   '000000002089102638',
+    credential: 'KdrJQCOERLu3h8x1R9rSdmxd7yA=',
+  },
+  {
+    urls:       'turn:free.expressturn.com:3478?transport=tcp',
+    username:   '000000002089102638',
+    credential: 'KdrJQCOERLu3h8x1R9rSdmxd7yA=',
+  },
 ];
 
 class ShareDropRTC {
