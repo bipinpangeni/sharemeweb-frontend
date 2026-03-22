@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-<head> 
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
+<head> <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="shortcut icon" href="favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShareMeWeb cloud — Secure Cloud File Storage & Sharing</title>
+  <title>ShareMeWeb Vault — Secure Cloud File Storage & Sharing</title>
   <meta name="description" content="ShareMeWeb Vault lets you upload files to secure cloud storage and share them with a unique 10-digit code. Password protection, download limits, auto-expiry and more." />
   <meta name="robots" content="index, follow" />
   <meta name="author" content="ShareMeWeb" />
@@ -360,7 +359,7 @@
 
     <section class="vault-hero">
       <div class="container">
-        <div class="hero-badge">☁️ Cloud Storage • Secure • </div>
+        <div class="hero-badge">☁️ Cloud Storage • Secure • 4GB Capacity</div>
         <h1>ShareMeWeb <span style="color:var(--accent)">Vault</span></h1>
         <p>Upload files to secure cloud storage and share them with a unique 10-digit code. Password protection, download limits, auto-expiry and file preview included.</p>
 
@@ -635,9 +634,13 @@
     </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="qr.js"></script>
+  <script>
+    emailjs.init('NP_bc9NmgTuW5kL-4')
+  </script>
   <script>
   // ═══════════════════════════════════════════════════════
   //  SUPABASE — 4 databases, auto-switches as each fills
@@ -852,10 +855,20 @@
     box.classList.add('show')
   }
 
-  function vSendEmail(email,code,filename){
-    const subject=`File shared with you: ${filename}`
-    const body=`Someone shared a file with you via ShareMeWeb Vault.\n\nFile: ${filename}\nAccess Code: ${code}\nDirect Link: ${window.location.href.split('?')[0]}?code=${code}\n\nVisit ShareMeWeb Vault and enter the code to download.`
-    window.open(`mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`)
+  function vSendEmail(email, code, filename) {
+    if (!email) return
+    const link = window.location.href.split('?')[0] + '?code=' + code
+    emailjs.send('service_f2tjo5b', 'template_26xgx51', {
+      to_email: email,
+      filename: filename,
+      code: code,
+      link: link
+    }).then(() => {
+      vToast('Email sent successfully!')
+    }).catch(err => {
+      console.error('EmailJS error:', err)
+      vToast('Email could not be sent.')
+    })
   }
 
   function vShareEmail(){vSendEmail(document.getElementById('vShareEmail').value.trim()||'',vCurCode,document.getElementById('vGenCode').textContent)}
