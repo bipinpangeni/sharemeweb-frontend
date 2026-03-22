@@ -639,7 +639,7 @@
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="qr.js"></script>
   <script>
-    emailjs.init({publicKey: 'NP_bc9NmgTuW5kL-4'})
+    emailjs.init({publicKey: '9uG7_-LSFGYTEHM5s'})
   </script>
   <script>
   // ═══════════════════════════════════════════════════════
@@ -856,21 +856,27 @@
   }
 
   function vSendEmail(email, code, filename) {
-    if (!email) return
+    if (!email) { vToast('No email entered!'); return }
     const link = window.location.href.split('?')[0] + '?code=' + code
-    emailjs.send('service_5a9vngu', 'template_26xgx51', {
+    console.log('Sending email to:', email, 'code:', code, 'file:', filename)
+    const params = {
       to_email: email,
       filename: filename,
       code: code,
       link: link,
       name: 'ShareMeWeb Vault',
       email: 'info@sharemeweb.com'
-    }).then(() => {
-      vToast('Email sent successfully!')
-    }).catch(err => {
-      console.error('EmailJS error:', JSON.stringify(err))
-      vToast('Error: ' + (err.text || err.message || JSON.stringify(err)))
-    })
+    }
+    console.log('EmailJS params:', JSON.stringify(params))
+    emailjs.send('service_5a9vngu', 'template_26xgx51', params)
+      .then((res) => {
+        console.log('EmailJS success:', res)
+        vToast('✅ Email sent!')
+      })
+      .catch((err) => {
+        console.error('EmailJS FULL error:', err)
+        alert('EmailJS Error:\nStatus: ' + err.status + '\nText: ' + err.text)
+      })
   }
 
   function vShareEmail(){vSendEmail(document.getElementById('vShareEmail').value.trim()||'',vCurCode,document.getElementById('vGenCode').textContent)}
