@@ -634,12 +634,14 @@
     </div>
   </footer>
 
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   <script src="qr.js"></script>
   <script>
-    emailjs.init({publicKey: '9uG7_-LSFGYTEHM5s'})
+    (function(){
+      emailjs.init({publicKey: '9uG7_-LSFGYTEHM5s'});
+    })();
   </script>
   <script>
   // ═══════════════════════════════════════════════════════
@@ -868,7 +870,7 @@
       email: 'info@sharemeweb.com'
     }
     console.log('EmailJS params:', JSON.stringify(params))
-    emailjs.send('service_5a9vngu', 'template_26xgx51', params)
+    emailjs.send('service_5a9vngu', 'template_d8vsqqh', params)
       .then((res) => {
         console.log('EmailJS success:', res)
         vToast('✅ Email sent!')
