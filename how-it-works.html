@@ -3,291 +3,101 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="shortcut icon" href="favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>How to Share Files Online Free — ShareMeWeb File Transfer Guide</title>
-  <meta name="description" content="Learn how to share files online for free using ShareMeWeb. Transfer files instantly via QR code — no uploads, no account. Faster than WeTransfer, more private than cloud storage." />
-  <meta name="keywords" content="how to share file, how to share a file, share file link, file transfer, share files online free, quick file share, how to share files between devices" />
-  <meta name="signaling-url" content="https://sharemeweb-server.onrender.com" />
-  <meta name="theme-color" content="#2d6ef6" />
+  <meta name="description" content="Learn how to share files online for free using ShareMeWeb. Transfer files instantly via QR code — no uploads, no account." />
   <meta name="robots" content="index, follow" />
-  <meta property="og:type"        content="website" />
-  <meta property="og:url"         content="https://sharemeweb.com/how-it-works.html" />
-  <meta property="og:title"       content="How ShareMeWeb Works — WebRTC P2P File Transfer Explained" />
-  <meta property="og:description" content="Learn how ShareMeWeb uses WebRTC DataChannels and QR codes for instant peer-to-peer file sharing. No uploads, no servers, direct browser-to-browser transfer." />
-  <meta property="og:site_name"   content="ShareMeWeb" />
+  <meta name="theme-color" content="#2d6ef6" />
   <link rel="stylesheet" href="styles.css" />
-  <link rel="canonical" href="https://sharemeweb.com/how-it-works.html" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- ================================================
-       GOOGLE ADSENSE — Replace ca-pub-XXXXXXXXXXXXXXXX
-       with your real Publisher ID after approval
-       ================================================ -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
 </head>
 <body>
-
   <header class="site-header">
     <div class="container header-inner">
-      <a href="/" class="logo">
-        <img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" />
-      </a>
+      <a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" /></a>
       <nav aria-label="Main navigation">
         <ul class="nav-links" id="nav-links">
           <li><a href="/">Home</a></li>
+          <li><a href="cloud.html">Vault</a></li>
+          <li><a href="blog.html">Blog</a></li>
           <li><a href="how-it-works.html" class="active">How It Works</a></li>
-          <li><a href="about.html">About</a></li>
           <li><a href="contact.html">Contact</a></li>
-          <li><a href="/" class="nav-cta">Share a File</a></li>
         </ul>
       </nav>
-      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
     </div>
   </header>
 
   <main>
-
-    <!-- ADSENSE_TOP -->
-    <div class="container">
-      <div class="ad-slot-wrap">
-      <!-- ACTIVATE AFTER ADSENSE APPROVAL: remove comment tags below -->
-      <!--
-      <ins class="adsbygoogle ad-top"
-           style="display:block"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-           data-ad-slot="1111111111"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-      <!-- PLACEHOLDER (remove this div after AdSense approval) -->
-      <div class="ad-slot ad-top" aria-label="Advertisement"></div>
-    </div>
-    </div>
-
     <div class="page-hero">
       <div class="container">
         <span class="badge">Technical Deep Dive</span>
         <h1>How to Share Files Online Free — Complete Guide</h1>
-        <p>A plain-English explanation of the technology that makes instant, private file transfers possible — and the technical details for the curious.</p>
+        <p>A plain-English explanation of the technology that makes instant, private file transfers possible.</p>
       </div>
     </div>
 
     <section class="prose-section">
       <div class="container">
-        <div class="prose-grid">
+        <div class="prose-body">
+          <h2>The Short Version</h2>
+          <p>When you share a file with ShareMeWeb, it travels <strong>directly</strong> from your browser to the recipient's browser. Our servers are only used for less than a second at the very beginning to help the two browsers "find" each other. After that, we're out of the picture entirely.</p>
 
-          <div class="prose-body">
-
-            <h2>The Short Version</h2>
-            <p>When you share a file with ShareMeWeb, it travels <strong>directly</strong> from your browser to the recipient's browser. Our servers are only used for less than a second at the very beginning — to help the two browsers "find" each other on the internet. After that, they communicate directly and we're out of the picture entirely.</p>
-
-            <blockquote>
-              <p>Your files never touch our servers. We technically cannot see what you're transferring.</p>
-            </blockquote>
-
-            <!-- ── Step by Step ─────────────────────────────── -->
-            <h2>Step-by-Step Walkthrough</h2>
-
-            <div class="hiw-steps">
-              <div class="hiw-step">
-                <div class="hiw-step-num">1</div>
-                <div class="hiw-step-content">
-                  <h3>Sender selects a file</h3>
-                  <p>You drag a file into the browser or click to browse. The file stays in your device's memory — it is not uploaded anywhere at this stage. ShareMeWeb reads its name and size to display information, but the bytes don't move yet.</p>
-                </div>
-              </div>
-
-              <div class="hiw-step">
-                <div class="hiw-step-num">2</div>
-                <div class="hiw-step-content">
-                  <h3>WebRTC Offer is created</h3>
-                  <p>Your browser generates a WebRTC "offer" — a special document called an SDP (Session Description Protocol). It contains information about your network capabilities, supported codecs, and how to reach you. Think of it like handing someone your business card so they can call you back.</p>
-                </div>
-              </div>
-
-              <div class="hiw-step">
-                <div class="hiw-step-num">3</div>
-                <div class="hiw-step-content">
-                  <h3>Signaling server creates a session</h3>
-                  <p>The offer is sent to ShareMeWeb's lightweight signaling server, which assigns it a unique session ID and stores it temporarily in memory (never on disk). A QR code and link are generated containing this session ID. The signaling server's only job is to relay these small handshake messages — it never sees your file data.</p>
-                </div>
-              </div>
-
-              <div class="hiw-step">
-                <div class="hiw-step-num">4</div>
-                <div class="hiw-step-content">
-                  <h3>Receiver scans the QR code</h3>
-                  <p>Using their phone camera or by pasting the link into any browser, the receiver opens the session. Their browser fetches the sender's SDP offer from the signaling server and generates an "answer" SDP in return. Both browsers now know how to reach each other.</p>
-                </div>
-              </div>
-
-              <div class="hiw-step">
-                <div class="hiw-step-num">5</div>
-                <div class="hiw-step-content">
-                  <h3>ICE candidate exchange</h3>
-                  <p>Behind the scenes, both browsers gather "ICE candidates" — essentially a list of possible ways to connect (local IP, public IP via STUN server, relay via TURN server). These candidates are exchanged through the signaling server until a working path is found between the two browsers. This typically takes 1–3 seconds.</p>
-                </div>
-              </div>
-
-              <div class="hiw-step">
-                <div class="hiw-step-num">6</div>
-                <div class="hiw-step-content">
-                  <h3>P2P DataChannel opens</h3>
-                  <p>Once both sides agree on a connection path, WebRTC establishes a <code>RTCDataChannel</code> — a direct, reliable, ordered binary channel between the two browsers. DTLS encryption is applied automatically by the WebRTC standard; there is no option to turn it off.</p>
-                </div>
-              </div>
-
-              <div class="hiw-step">
-                <div class="hiw-step-num">7</div>
-                <div class="hiw-step-content">
-                  <h3>File is chunked and streamed</h3>
-                  <p>The sender's browser reads the file in 64 KB chunks using the <code>FileReader</code> API and sends each chunk through the DataChannel. The receiver's browser collects these chunks and reassembles them in order. Progress bars on both sides update in real time. When the last chunk arrives, the receiver gets a download prompt automatically.</p>
-                </div>
-              </div>
-
-              <div class="hiw-step">
-                <div class="hiw-step-num">8</div>
-                <div class="hiw-step-content">
-                  <h3>Session expires automatically</h3>
-                  <p>Once the transfer is complete (or after 30 minutes of inactivity), the session ID is deleted from the signaling server's memory. The WebRTC connection closes. No trace remains on our infrastructure.</p>
-                </div>
+          <h2>Step-by-Step Walkthrough</h2>
+          <div class="hiw-steps">
+            <div class="hiw-step">
+              <div class="hiw-step-num">1</div>
+              <div class="hiw-step-content">
+                <h3>Sender selects a file</h3>
+                <p>The file stays in your device's memory — it is not uploaded anywhere at this stage.</p>
               </div>
             </div>
-
-            <!-- ── Tech stack ───────────────────────────────── -->
-            <h2>Technology Stack</h2>
-            <div class="tech-stack-cards">
-              <div class="tech-card">
-                <div class="icon">🌐</div>
-                <h4>WebRTC</h4>
-                <p>Browser-native P2P protocol with built-in DTLS encryption</p>
-              </div>
-              <div class="tech-card">
-                <div class="icon">📡</div>
-                <h4>Socket.io</h4>
-                <p>Lightweight signaling — only used during handshake (~1KB of data)</p>
-              </div>
-              <div class="tech-card">
-                <div class="icon">🔳</div>
-                <h4>QR Code</h4>
-                <p>Session URL encoded as QR for easy mobile scanning</p>
-              </div>
-              <div class="tech-card">
-                <div class="icon">⚙️</div>
-                <h4>Node.js</h4>
-                <p>Tiny signaling server — handles no file data whatsoever</p>
+            <div class="hiw-step">
+              <div class="hiw-step-num">2</div>
+              <div class="hiw-step-content">
+                <h3>Receiver scans the QR code</h3>
+                <p>Using their phone camera or a link, the receiver connects directly to your device via WebRTC.</p>
               </div>
             </div>
-
-            <!-- ── FAQ ──────────────────────────────────────── -->
-            <h2 id="faq">Frequently Asked Questions</h2>
-
-            <h3>Is there a file size limit?</h3>
-            <p>There is no server-imposed size limit because files never touch our servers. The practical limit depends on your device's available RAM — transferring multi-gigabyte files requires enough memory to buffer the data. For most files (documents, photos, short videos), there are no issues.</p>
-
-            <h3>Does it work across different networks?</h3>
-            <p>Yes. When both devices are on the same WiFi network, the transfer goes through your local router and is extremely fast. When devices are on different networks, WebRTC automatically finds a public route using STUN servers. In rare cases (corporate firewalls, strict NAT), a TURN relay server may be used — though the relay only sees encrypted data.</p>
-
-            <h3>What browsers are supported?</h3>
-            <p>All modern browsers support WebRTC DataChannels: Chrome 56+, Firefox 44+, Safari 15+, Edge 79+, and all modern mobile browsers. Internet Explorer is not supported.</p>
-
-            <h3>Is the transfer encrypted?</h3>
-            <p>Yes. WebRTC mandates DTLS (Datagram Transport Layer Security) encryption on all DataChannel connections. This is enforced at the browser level — it cannot be disabled. The encryption keys are negotiated directly between your browsers and are never shared with our servers.</p>
-
-            <h3>What happens if the connection drops?</h3>
-            <p>The current transfer will stop. You'll need to start a new session. We're working on resumable transfers for a future release.</p>
-
-            <h3>Can I send to multiple people simultaneously?</h3>
-            <p>Currently, each session supports one sender and one receiver. For sharing with multiple people, generate a new session for each recipient.</p>
-
+            <div class="hiw-step">
+              <div class="hiw-step-num">3</div>
+              <div class="hiw-step-content">
+                <h3>File is chunked and streamed</h3>
+                <p>Your browser sends the file in tiny encrypted chunks. The receiver's browser reassembles them locally.</p>
+              </div>
+            </div>
+          </div>
+          
+          <div class="ad-slot-wrap" style="margin: 40px 0;">
+            <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9097558719904278" data-ad-slot="2222222222" data-ad-format="auto" data-full-width-responsive="true"></ins>
+            <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
           </div>
 
-          <!-- Sidebar Ad -->
-          <aside>
-            <!-- ADSENSE_SIDEBAR -->
-            <div class="ad-slot-wrap">
-        <!--
-        <ins class="adsbygoogle ad-sidebar"
-             style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-             data-ad-slot="4444444444"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        -->
-        <div class="ad-slot ad-sidebar" aria-label="Advertisement"></div>
-      </div>
-          </aside>
+          <h2 id="faq">Frequently Asked Questions</h2>
+          <h3>Is there a file size limit?</h3>
+          <p>There is no server-imposed size limit on our P2P tool because files never touch our servers. For our Cloud Vault, the limit is 100MB per batch.</p>
 
+          <h3>Is the transfer encrypted?</h3>
+          <p>Yes. WebRTC mandates DTLS encryption. This is enforced at the browser level — it cannot be disabled.</p>
         </div>
       </div>
     </section>
-
-    <!-- ADSENSE_FOOTER -->
-    <div class="container">
-      <div class="ad-slot-wrap">
-      <!--
-      <ins class="adsbygoogle ad-footer"
-           style="display:block"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-           data-ad-slot="3333333333"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-      <div class="ad-slot ad-footer" aria-label="Advertisement"></div>
-    </div>
-    </div>
-
   </main>
 
-  
-    <!-- SEO Content Section -->
-    <section style="padding:48px 0;background:var(--surface);border-top:1px solid var(--border);">
-      <div class="container">
-        <div class="prose-body" style="max-width:800px;margin:0 auto;">
-
-          <h2>ShareMeWeb vs WeTransfer — What's the Difference?</h2>
-          <p>Unlike WeTransfer and similar services, ShareMeWeb never uploads your files to any server. Files travel directly from your browser to the recipient's browser using WebRTC technology. This means faster transfers, complete privacy, and no file size limits.</p>
-
-          <h2>How to Share a File Online for Free</h2>
-          <p>Sharing files online for free has never been easier. With ShareMeWeb, you simply select your file, generate a QR code, and share the link. The receiver scans the QR code or opens the link, and the file transfers instantly. No account required, no waiting for uploads.</p>
-
-          <h2>Free File Transfer — No Upload Required</h2>
-          <p>Traditional file sharing services like WeTransfer, Dropbox, and Google Drive require you to upload your files to their servers first. ShareMeWeb eliminates this step entirely. Your file goes directly from your device to the recipient — making it the fastest free file transfer tool available.</p>
-
-          <h2>Quick Share Between Any Devices</h2>
-          <p>ShareMeWeb works as a quick share tool between any combination of devices — phone to laptop, Mac to PC, Android to iPhone. As long as both devices have a modern browser, ShareMeWeb works instantly without any app download.</p>
-
-          <h2>Private and Secure File Sharing</h2>
-          <p>Every file transfer on ShareMeWeb is end-to-end encrypted using WebRTC DTLS protocol. This means your files are protected during the entire transfer. No third party, including ShareMeWeb, can access your files.</p>
-
-        </div>
-      </div>
-    </section>
-
-<footer class="site-footer">
+  <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
-        <div class="footer-brand">
-          <a href="/" class="logo"><span class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></span>Share<span>MeWeb</span></a>
-          <p>Instant free file sharing. No uploads, no storage, no limits.</p>
-        </div>
-        <div><p class="footer-title">Product</p><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="how-it-works.html">How It Works</a></li><li><a href="about.html">About Us</a></li></ul></div>
-        <div><p class="footer-title">Support</p><ul class="footer-links"><li><a href="contact.html">Contact</a></li><li><a href="how-it-works.html#faq">FAQ</a></li></ul></div>
+        <div class="footer-brand"><a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb" style="height:30px;width:auto;" /></a><p>Instant free file sharing. No uploads, no storage, no limits.</p></div>
+        <div><p class="footer-title">Product</p><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="cloud.html">Cloud Vault</a></li><li><a href="how-it-works.html">How It Works</a></li></ul></div>
+        <div><p class="footer-title">Company</p><ul class="footer-links"><li><a href="blog.html">Blog</a></li><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact Support</a></li></ul></div>
         <div><p class="footer-title">Legal</p><ul class="footer-links"><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li></ul></div>
       </div>
       <div class="footer-bottom">
         <p>&copy; 2026 ShareMeWeb. All rights reserved.</p>
-        <div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></div>
+        <div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
       </div>
     </div>
   </footer>
-
   <script src="app.js" defer></script>
 </body>
 </html>
