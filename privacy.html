@@ -3,26 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="shortcut icon" href="favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Privacy Policy — ShareMeWeb Secure File Sharing | No Data Storage</title>
-  <meta name="description" content="ShareMeWeb never stores your files. All file transfers are encrypted end-to-end. Private file sharing with zero data retention. GDPR compliant." />
-  <meta name="signaling-url" content="https://sharemeweb-server.onrender.com" />
-  <meta name="theme-color" content="#2d6ef6" />
+  <title>Privacy Policy — ShareMeWeb Secure File Sharing</title>
+  <meta name="description" content="ShareMeWeb privacy policy. Learn how we protect your data with end-to-end encryption and zero cloud storage logs." />
   <meta name="robots" content="index, follow" />
-  <meta property="og:type"        content="website" />
-  <meta property="og:url"         content="https://sharemeweb.com/privacy.html" />
-  <meta property="og:title"       content="Privacy Policy — ShareMeWeb | Your Files Are Never Stored" />
-  <meta property="og:description" content="ShareMeWeb Privacy Policy. Your files are never stored on our servers. All transfers are encrypted end-to-end. GDPR compliant privacy policy." />
-  <meta property="og:site_name"   content="ShareMeWeb" />
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="theme-color" content="#2d6ef6" />
   <link rel="canonical" href="https://sharemeweb.com/privacy.html" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <!-- ================================================
-       GOOGLE ADSENSE — Replace ca-pub-XXXXXXXXXXXXXXXX
-       with your real Publisher ID after approval
-       ================================================ -->
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
 </head>
 <body>
@@ -33,10 +22,10 @@
       <nav aria-label="Main navigation">
         <ul class="nav-links" id="nav-links">
           <li><a href="/">Home</a></li>
+          <li><a href="cloud.html">Vault</a></li>
+          <li><a href="blog.html">Blog</a></li>
           <li><a href="how-it-works.html">How It Works</a></li>
-          <li><a href="about.html">About</a></li>
           <li><a href="contact.html">Contact</a></li>
-          <li><a href="/" class="nav-cta">Share a File</a></li>
         </ul>
       </nav>
       <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
@@ -44,26 +33,16 @@
   </header>
 
   <main>
-    <div class="container"><div class="ad-slot-wrap">
-      <!-- ACTIVATE AFTER ADSENSE APPROVAL: remove comment tags below -->
-      <!--
-      <ins class="adsbygoogle ad-top"
-           style="display:block"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-           data-ad-slot="1111111111"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
+    <div class="container ad-slot-wrap">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9097558719904278" data-ad-slot="1111111111" data-ad-format="auto" data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-      <!-- PLACEHOLDER (remove this div after AdSense approval) -->
-      <div class="ad-slot ad-top" aria-label="Advertisement"></div>
-    </div></div>
+    </div>
 
     <div class="page-hero">
       <div class="container">
         <span class="badge">Legal</span>
-        <h1>Privacy Policy — Your Files Are Never Stored</h1>
-        <p>Last updated: January 1, 2025. We believe privacy policies should be readable. Here's exactly what we do — and don't do — with your data.</p>
+        <h1>Privacy Policy</h1>
+        <p>Last updated: January 1, 2025. We believe privacy policies should be readable. Here is exactly what we do — and don't do — with your data.</p>
       </div>
     </div>
 
@@ -71,155 +50,65 @@
       <div class="container">
         <div class="prose-grid">
           <div class="prose-body">
-
             <blockquote>
-              <p><strong>Plain English Summary:</strong> We do not store your files. Files transfer directly between browsers. We only temporarily store a small signaling token (no file data) to help browsers connect. That token is deleted within 30 minutes.</p>
+              <p><strong>Plain English Summary:</strong> For our P2P tool, we do not store your files. Files transfer directly between browsers. For our Cloud Vault, files are encrypted, temporary, and auto-deleted based on your settings.</p>
             </blockquote>
 
-            <h2>1. Introduction</h2>
-            <p>ShareMeWeb ("we," "us," or "our") operates the website at <a href="https://sharemeweb.com">sharemeweb.com</a> (the "Service"). This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website or use our file transfer service. Please read this policy carefully. If you disagree with its terms, please discontinue use of the Service.</p>
-            <p>We reserve the right to make changes to this Privacy Policy at any time and for any reason. We will alert you about any changes by updating the "Last Updated" date of this Privacy Policy.</p>
-
-            <h2>2. Information We Do NOT Collect</h2>
-            <p>This section is important. The following data is <strong>never</strong> collected, stored, or transmitted to our servers:</p>
+            <h2>1. Information We Do NOT Collect</h2>
+            <p>For our standard Peer-to-Peer (P2P) transfers on the homepage, the following data is <strong>never</strong> collected, stored, or transmitted to our servers:</p>
             <ul>
-              <li><strong>Your files.</strong> Files transferred via ShareMeWeb never touch our servers. They flow directly from the sender's browser to the receiver's browser using WebRTC peer-to-peer technology.</li>
-              <li><strong>File names or types.</strong> We do not log, store, or inspect the names, sizes, or types of files you transfer.</li>
-              <li><strong>File contents.</strong> We have no technical capability to access file contents. The WebRTC DataChannel enforces DTLS encryption, and encryption keys are never shared with us.</li>
+              <li><strong>Your files.</strong> Files transferred via P2P never touch our servers. They flow directly from the sender's browser to the receiver's browser using WebRTC technology.</li>
+              <li><strong>File names or contents.</strong> We have no technical capability to access file contents. The WebRTC DataChannel enforces DTLS encryption.</li>
               <li><strong>Account information.</strong> We do not require registration, email addresses, usernames, or passwords.</li>
             </ul>
 
-            <h2>3. Information We DO Collect</h2>
+            <h2>2. Information We DO Collect</h2>
+            <h3>2.1 Cloud Vault Uploads</h3>
+            <p>If you choose to use our "Cloud Vault" feature, your files are temporarily uploaded to our secure Supabase database servers. These files are subject to the auto-expiry and download limits you set. Once a file reaches its download limit or time limit, it is permanently deleted from our storage buckets.</p>
 
-            <h3>3.1 Session Tokens</h3>
-            <p>When you initiate a file transfer, our signaling server creates a short-lived session token (a random alphanumeric string). This token is stored temporarily in server memory to facilitate the WebRTC handshake. It does not contain any file data, personal information, or device identifiers. Session tokens expire automatically:</p>
-            <ul>
-              <li>Immediately after a successful transfer completes</li>
-              <li>After 30 minutes of inactivity</li>
-              <li>When the browser tab is closed</li>
-            </ul>
+            <h3>2.2 Session Tokens</h3>
+            <p>When you initiate a P2P transfer, our signaling server creates a short-lived session token. This token does not contain any file data and expires automatically when the browser tab is closed.</p>
 
-            <h3>3.2 Standard Server Logs</h3>
-            <p>Like virtually all websites, our web server automatically records standard access logs, which may include:</p>
-            <ul>
-              <li>Your IP address (anonymized/truncated where possible)</li>
-              <li>Browser type and version</li>
-              <li>Operating system</li>
-              <li>The page requested and timestamp</li>
-              <li>HTTP response codes</li>
-            </ul>
-            <p>These logs are retained for a maximum of 30 days for security and performance monitoring, then automatically deleted. We do not use them to identify individuals.</p>
+            <h3>2.3 Analytics & Advertising</h3>
+            <p>Our Service is supported by display advertising. Third-party advertising providers (such as Google AdSense) may place cookies on your browser to serve relevant advertisements. You may opt out of personalized advertising by visiting Google's Ad Settings.</p>
 
-            <h3>3.3 Analytics (Aggregated)</h3>
-            <p>We may use privacy-respecting analytics to understand aggregate usage patterns (total page views, geographic region of visitors, browser usage). This data is always aggregated and never tied to individual users. We do not use tracking cookies for behavioral advertising.</p>
+            <h2>3. Data Sharing and Disclosure</h2>
+            <p>We do not sell, trade, rent, or otherwise transfer your information to third parties except when required by law or to protect the safety of our users.</p>
 
-            <h3>3.4 Advertising</h3>
-            <p>Our Service is supported by display advertising. Third-party advertising providers (such as Google AdSense) may place cookies on your browser to serve relevant advertisements. These cookies are subject to the respective providers' privacy policies. You may opt out of personalized advertising by visiting <a href="https://www.google.com/settings/ads" rel="noopener noreferrer" target="_blank">Google's Ad Settings</a>.</p>
-
-            <h2>4. How We Use Information</h2>
-            <p>The limited information we collect is used solely to:</p>
-            <ul>
-              <li>Operate, maintain, and improve the Service</li>
-              <li>Monitor system security and performance</li>
-              <li>Comply with legal obligations</li>
-              <li>Serve non-intrusive advertisements to fund the free Service</li>
-            </ul>
-            <p>We do not use your information for profiling, behavioral advertising, or any other purpose beyond operating the Service.</p>
-
-            <h2>5. Cookies</h2>
-            <p>ShareMeWeb itself does not set cookies for user tracking or session management (we don't have user accounts). The only cookies that may be present are:</p>
-            <ul>
-              <li><strong>Analytics cookies:</strong> If analytics are enabled, a privacy-respecting analytics provider may set a minimal session cookie.</li>
-              <li><strong>Advertising cookies:</strong> Third-party ad providers may set cookies for ad frequency capping and fraud prevention. These are governed by the respective providers' policies.</li>
-            </ul>
-            <p>You can disable cookies in your browser settings. This will not affect the core file transfer functionality of ShareMeWeb.</p>
-
-            <h2>6. Data Sharing and Disclosure</h2>
-            <p>We do not sell, trade, rent, or otherwise transfer your information to third parties except in the following limited circumstances:</p>
-            <ul>
-              <li><strong>Legal requirement:</strong> If required by law, court order, or governmental authority</li>
-              <li><strong>Safety:</strong> To protect the rights, property, or safety of ShareMeWeb, our users, or the public</li>
-              <li><strong>Business transfer:</strong> In connection with a merger, acquisition, or sale of all or substantially all of our assets (users would be notified in advance)</li>
-              <li><strong>Service providers:</strong> Trusted third parties who assist in operating our website under strict confidentiality agreements (e.g., hosting providers)</li>
-            </ul>
-
-            <h2>7. Data Security</h2>
-            <p>We implement appropriate technical and organizational measures to protect the limited information we handle:</p>
-            <ul>
-              <li>HTTPS/TLS encryption for all web traffic</li>
-              <li>WebRTC DTLS encryption for all peer-to-peer transfers</li>
-              <li>No persistent storage of session tokens</li>
-              <li>Regular security audits of our signaling server</li>
-            </ul>
-            <p>However, no method of electronic transmission or storage is 100% secure, and we cannot guarantee absolute security.</p>
-
-            <h2>8. Your Rights (GDPR / CCPA)</h2>
-            <p>If you are located in the European Economic Area or California, you have certain rights regarding personal data:</p>
-            <ul>
-              <li><strong>Right of Access:</strong> Request information about what data we hold about you</li>
-              <li><strong>Right to Deletion:</strong> Request deletion of your personal data</li>
-              <li><strong>Right to Restriction:</strong> Request that we restrict processing of your data</li>
-              <li><strong>Right to Object:</strong> Object to our processing of your data</li>
-              <li><strong>Right to Portability:</strong> Receive your data in a machine-readable format</li>
-            </ul>
-            <p>Since we collect minimal data and do not maintain user accounts, most of these rights are already satisfied by our architecture. For any requests, contact us at the address on our <a href="contact.html">Contact page</a>.</p>
-
-            <h2>9. Children's Privacy</h2>
-            <p>ShareMeWeb does not knowingly collect information from children under 13 years of age. If you are under 13, do not use the Service. If we become aware that we have collected information from a child under 13, we will delete it immediately.</p>
-
-            <h2>10. Changes to This Policy</h2>
-            <p>We may update this Privacy Policy from time to time. We will notify you of significant changes by updating the "Last Updated" date at the top of this page. Continued use of the Service after changes constitutes acceptance of the updated policy.</p>
-
-            <h2>11. Contact</h2>
-            <p>If you have questions or concerns about this Privacy Policy, please contact us via our <a href="contact.html">Contact page</a>. We aim to respond to all inquiries within 5 business days.</p>
-
+            <h2>4. Contact Us</h2>
+            <p>If you have questions or concerns about this Privacy Policy, please email us directly at <strong>bipinpangeni58@gmail.com</strong> or use our <a href="contact.html">Contact page</a>.</p>
           </div>
 
           <aside>
-            <!-- ADSENSE_SIDEBAR -->
             <div class="ad-slot-wrap">
-        <!--
-        <ins class="adsbygoogle ad-sidebar"
-             style="display:block"
-             data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-             data-ad-slot="4444444444"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-        -->
-        <div class="ad-slot ad-sidebar" aria-label="Advertisement"></div>
-      </div>
+              <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9097558719904278" data-ad-slot="4444444444" data-ad-format="auto" data-full-width-responsive="true"></ins>
+              <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+            </div>
           </aside>
         </div>
       </div>
     </section>
 
-    <div class="container"><div class="ad-slot-wrap">
-      <!--
-      <ins class="adsbygoogle ad-footer"
-           style="display:block"
-           data-ad-client="ca-pub-XXXXXXXXXXXXXXXX"
-           data-ad-slot="3333333333"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
+    <div class="container ad-slot-wrap">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9097558719904278" data-ad-slot="3333333333" data-ad-format="auto" data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-      -->
-      <div class="ad-slot ad-footer" aria-label="Advertisement"></div>
-    </div></div>
+    </div>
   </main>
 
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
-        <div class="footer-brand"><a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" /></a><p>Instant free file sharing. No uploads, no storage, no limits.</p></div>
-        <div><p class="footer-title">Product</p><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="how-it-works.html">How It Works</a></li><li><a href="about.html">About Us</a></li></ul></div>
-        <div><p class="footer-title">Support</p><ul class="footer-links"><li><a href="contact.html">Contact</a></li><li><a href="how-it-works.html#faq">FAQ</a></li></ul></div>
+        <div class="footer-brand"><a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb" style="height:30px;width:auto;" /></a><p>Instant free file sharing. No uploads, no storage, no limits. Privacy first.</p></div>
+        <div><p class="footer-title">Product</p><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="cloud.html">Cloud Vault</a></li><li><a href="how-it-works.html">How It Works</a></li></ul></div>
+        <div><p class="footer-title">Company</p><ul class="footer-links"><li><a href="blog.html">Blog</a></li><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact Support</a></li></ul></div>
         <div><p class="footer-title">Legal</p><ul class="footer-links"><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li></ul></div>
       </div>
-      <div class="footer-bottom"><p>&copy; 2026 ShareMeWeb. All rights reserved.</p><div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></div></div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 ShareMeWeb. All rights reserved.</p>
+        <div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
+      </div>
     </div>
   </footer>
-
   <script src="app.js" defer></script>
 </body>
 </html>
