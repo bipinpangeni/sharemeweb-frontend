@@ -3,170 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-  <link rel="shortcut icon" href="favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShareMeWeb — Free File Sharing via QR Code | Transfer Files Instantly Online</title>
-  <meta name="description" content="ShareMeWeb is the best free file sharing tool. Share files online instantly using QR codes — no uploads, no account, no size limits. Faster than WeTransfer, safer than cloud storage. Fast and private file transfer." />
-  <meta name="keywords" content="free file share, share file online free, file transfer, share files, share file link, file sharing, quick share, quick file share, private file share, share file free, how to share file, wetransfer alternative, shareit web, web shareit, file share online, secure file share" />
-  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
-  <meta name="author" content="ShareMeWeb" />
+  <title>ShareMeWeb — Free File Sharing via QR Code | Transfer Files Instantly</title>
+  <meta name="description" content="ShareMeWeb is the best free file sharing tool. Share files online instantly using QR codes — no uploads, no account, no size limits. Fast and private file transfer." />
+  <meta name="keywords" content="free file share, share file online free, file transfer, share files, share file link, file sharing, quick share, private file share" />
+  <meta name="robots" content="index, follow, max-image-preview:large" />
   <meta name="theme-color" content="#2d6ef6" />
-
-  <!-- Canonical -->
   <link rel="canonical" href="https://sharemeweb.com/" />
-
-  <!-- Open Graph -->
-  <meta property="og:type"        content="website" />
-  <meta property="og:url"         content="https://sharemeweb.com/" />
-  <meta property="og:title"       content="ShareMeWeb — Free File Sharing | Transfer Files Instantly via QR Code" />
-  <meta property="og:description" content="Share files instantly between any devices. No uploads, no storage, no limits. Just scan a QR code and transfer begins immediately." />
-  <meta property="og:image"       content="https://sharemeweb.com/og-image.png" />
-  <meta property="og:site_name"   content="ShareMeWeb" />
-  <meta property="og:locale"      content="en_US" />
-
-  <!-- Twitter Card -->
-  <meta name="twitter:card"        content="summary_large_image" />
-  <meta name="twitter:site"        content="@sharemeweb" />
-  <meta name="twitter:title"       content="ShareMeWeb — Free File Sharing via QR Code" />
-  <meta name="twitter:description" content="Share files instantly between devices using QR codes. No uploads, no cloud, 100% private." />
-  <meta name="twitter:image"       content="https://sharemeweb.com/og-image.png" />
-
-  <!-- Signaling server -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://sharemeweb.com/" />
+  <meta property="og:title" content="ShareMeWeb — Free File Sharing | Transfer Files Instantly" />
+  <meta property="og:description" content="Share files instantly between any devices. No uploads, no storage, no limits. Scan a QR code and transfer immediately." />
+  <meta property="og:image" content="https://sharemeweb.com/og-image.png" />
+  <meta property="og:site_name" content="ShareMeWeb" />
   <meta name="signaling-url" content="https://sharemeweb-server.onrender.com" />
-
-  <!-- Structured Data (JSON-LD) -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "ShareMeWeb",
-    "url": "https://sharemeweb.com",
-    "description": "Free instant file sharing via QR code. No uploads, no storage, no limits.",
-    "applicationCategory": "UtilitiesApplication",
-    "operatingSystem": "Any",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "featureList": [
-      "QR Code File Sharing",
-      "WebRTC P2P Transfer",
-      "No File Size Limit",
-      "End-to-End Encrypted",
-      "No Account Required",
-      "Multiple File Transfer"
-    ],
-    "screenshot": "https://sharemeweb.com/og-image.png",
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "1250"
-    }
-  }
-  </script>
-
-  <!-- FAQ Structured Data -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [
-      {
-        "@type": "Question",
-        "name": "Is ShareMeWeb free to use?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Yes, ShareMeWeb is completely free. No account, no subscription, no hidden fees."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Is there a file size limit?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No file size limit. You can transfer files of any size directly between browsers."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "Are files stored on your servers?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "No. Files are never stored on any server. They transfer directly between devices using WebRTC."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "How do I share a file using ShareMeWeb?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Select your file, click Generate QR Code, and have the receiver scan the QR code or open the link. Transfer starts automatically."
-        }
-      }
-    ]
-  }
-  </script>
-
   <link rel="stylesheet" href="styles.css" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
-  <!-- Google AdSense -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
 </head>
 <body>
-
   <header class="site-header">
     <div class="container header-inner">
-      <a href="/" class="logo" aria-label="ShareMeWeb Home">
-        <img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" />
-      </a>
+      <a href="/" class="logo" aria-label="ShareMeWeb Home"><img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" /></a>
       <nav aria-label="Main navigation">
         <ul class="nav-links" id="nav-links">
           <li><a href="/" class="active">Home</a></li>
+          <li><a href="cloud.html">Vault</a></li>
+          <li><a href="blog.html">Blog</a></li>
           <li><a href="how-it-works.html">How It Works</a></li>
-          <li><a href="about.html">About</a></li>
           <li><a href="contact.html">Contact</a></li>
-          <li><a href="/" class="nav-cta">Share a File</a></li>
         </ul>
       </nav>
-      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu"><span></span><span></span><span></span></button>
     </div>
   </header>
-
   <main>
-
-    <!-- AD TOP -->
-    <div class="container">
-      <ins class="adsbygoogle ad-top"
-           style="display:block"
-           data-ad-client="ca-pub-9097558719904278"
-           data-ad-slot="1111111111"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
+    <div class="container ad-slot-wrap">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9097558719904278" data-ad-slot="1111111111" data-ad-format="auto" data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
-
     <section class="hero" aria-labelledby="hero-title">
       <div class="container">
         <div class="hero-badge">⚡ Free • Instant • No Upload • No Account Required</div>
         <h1 id="hero-title">Free File Sharing<br>via QR Code — Instant &amp; Private</h1>
-        <p>The fastest way to share files online for free. Transfer any file directly between devices via QR code — no uploads, no cloud storage, no account needed. Better than WeTransfer, ShareIt, or Dropbox.</p>
-
+        <p>The fastest way to share files online for free. Transfer any file directly between devices via QR code — no uploads, no cloud storage, no account needed.</p>
         <div class="transfer-card" role="main">
           <div class="tab-bar" role="tablist">
-            <button class="tab-btn active" id="tab-send" role="tab" aria-selected="true" aria-controls="panel-send">
-              📤 Send File
-            </button>
-            <button class="tab-btn" id="tab-receive" role="tab" aria-selected="false" aria-controls="panel-receive">
-              📥 Receive File
-            </button>
+            <button class="tab-btn active" id="tab-send" role="tab" aria-selected="true" aria-controls="panel-send">📤 Send File</button>
+            <button class="tab-btn" id="tab-receive" role="tab" aria-selected="false" aria-controls="panel-receive">📥 Receive File</button>
           </div>
-
-          <!-- SEND PANEL -->
           <div class="tab-panel active" id="panel-send" role="tabpanel">
             <div class="upload-zone" id="upload-zone" role="button" tabindex="0" aria-label="Click or drag files to upload">
               <input type="file" id="file-input" aria-hidden="true" multiple />
@@ -174,61 +58,29 @@
               <h3>Drop your file here</h3>
               <p>or click to browse — any file type, any size<br><small style="color:var(--accent);font-weight:600;">✨ Select multiple files — sent one by one!</small></p>
             </div>
-
-            <div id="selected-files-list" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;max-height:200px;overflow-y:auto;"></div>
-
+            <div id="selected-files-list" style="display:none;margin-top:10px;border:1px solid var(--border);border-radius:var(--radius-sm);overflow-y:auto;max-height:200px;"></div>
             <div class="file-info-strip" id="file-info-strip" aria-live="polite">
               <span class="file-icon" id="file-icon">📁</span>
-              <div class="file-meta">
-                <div class="file-name" id="file-name">filename.ext</div>
-                <div class="file-size" id="file-size">0 KB</div>
-              </div>
+              <div class="file-meta"><div class="file-name" id="file-name">filename.ext</div><div class="file-size" id="file-size">0 KB</div></div>
               <button class="btn-clear" id="btn-clear" aria-label="Remove selected file">✕</button>
             </div>
-
-            <button class="btn btn-primary btn-lg btn-block" id="btn-generate" disabled>
-              Generate QR Code &amp; Share Link →
-            </button>
-<a href="cloud.html" style="color:var(--accent);font-weight:600;">or upload via cloud</a>
+            <button class="btn btn-primary btn-lg btn-block" id="btn-generate" disabled>Generate QR Code &amp; Share Link →</button>
+            <div style="text-align:center; margin-top:12px;"><a href="cloud.html" style="color:var(--accent);font-weight:600;font-size:0.9rem;">or use Cloud Vault for offline sharing →</a></div>
             <div class="qr-section fade-in" id="qr-section">
-              <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
-                Have the receiver scan this QR code or open the link below
-              </p>
-              <div class="qr-wrapper" aria-label="QR Code for file sharing">
-                <div id="qr-container"></div>
-              </div>
-              <div class="session-link-box">
-                <span id="session-link" aria-label="Session link"></span>
-                <button class="btn-copy" id="btn-copy">Copy</button>
-              </div>
+              <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">Have the receiver scan this QR code or open the link below</p>
+              <div class="qr-wrapper" aria-label="QR Code for file sharing"><div id="qr-container"></div></div>
+              <div class="session-link-box"><span id="session-link" aria-label="Session link"></span><button class="btn-copy" id="btn-copy">Copy</button></div>
             </div>
-
             <div id="status-send" role="status" aria-live="polite"></div>
-
             <div class="peer-list-section" id="peer-list" style="display:none;margin-top:20px;">
-              <div class="peer-list-header">
-                <span>👥 Connected Receivers</span>
-                <span id="peer-count" style="font-size:.8rem;color:var(--text-muted);"></span>
-              </div>
+              <div class="peer-list-header"><span>👥 Connected Receivers</span><span id="peer-count" style="font-size:.8rem;color:var(--text-muted);"></span></div>
             </div>
-
             <div class="transfer-progress" id="progress-send">
-              <div class="progress-header">
-                <span class="progress-label">Sending…</span>
-                <span class="progress-pct" id="progress-pct-send">0%</span>
-              </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progress-bar-send"></div>
-              </div>
-              <div class="progress-stats">
-                <span id="progress-sent">0 B / 0 B</span>
-                <span id="progress-speed">Speed: —</span>
-                <span id="progress-eta">ETA: —</span>
-              </div>
+              <div class="progress-header"><span class="progress-label">Sending…</span><span class="progress-pct" id="progress-pct-send">0%</span></div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar-send"></div></div>
+              <div class="progress-stats"><span id="progress-sent">0 B / 0 B</span><span id="progress-speed">Speed: —</span><span id="progress-eta">ETA: —</span></div>
             </div>
           </div>
-
-          <!-- RECEIVE PANEL -->
           <div class="tab-panel" id="panel-receive" role="tabpanel">
             <div class="scan-area">
               <div class="scan-icon">📱</div>
@@ -238,249 +90,82 @@
                 <button class="btn btn-primary btn-lg" id="btn-scan-qr">📷 Scan Sender's QR</button>
                 <button class="btn btn-secondary btn-lg" id="btn-show-my-qr">📱 Show My QR Code</button>
               </div>
-              <p style="font-size:.78rem;color:var(--text-muted);margin-top:8px;">
-                <strong>Scan Sender's QR</strong> — sender already has the file ready<br>
-                <strong>Show My QR</strong> — you go first, sender picks the file after scanning
-              </p>
             </div>
-
             <div class="qr-section fade-in" id="my-qr-section" style="margin-top:16px;display:none;">
-              <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">
-                Show this QR to the <strong>sender</strong> — they scan it and pick the file
-              </p>
-              <div class="qr-wrapper">
-                <div id="my-qr-container"></div>
-              </div>
-              <div class="session-link-box">
-                <span id="my-session-link"></span>
-                <button class="btn-copy" id="btn-copy-my-link">Copy</button>
-              </div>
+              <p style="font-size:.85rem;color:var(--text-muted);margin-bottom:12px;">Show this QR to the <strong>sender</strong></p>
+              <div class="qr-wrapper"><div id="my-qr-container"></div></div>
+              <div class="session-link-box"><span id="my-session-link"></span><button class="btn-copy" id="btn-copy-my-link">Copy</button></div>
             </div>
-
             <div id="camera-view" role="region" aria-label="Camera QR scanner">
               <video id="camera-video" autoplay playsinline muted></video>
-              <div class="scan-overlay">
-                <div class="scan-frame" aria-hidden="true"></div>
-              </div>
-              <button class="btn btn-secondary btn-sm" id="btn-camera-stop" style="position:absolute;top:12px;right:12px;">
-                ✕ Stop Camera
-              </button>
+              <div class="scan-overlay"><div class="scan-frame" aria-hidden="true"></div></div>
+              <button class="btn btn-secondary btn-sm" id="btn-camera-stop" style="position:absolute;top:12px;right:12px;">✕ Stop Camera</button>
             </div>
-
             <div class="or-divider" aria-hidden="true">or paste link</div>
-
             <div class="link-input-group">
-              <input type="url" class="link-input" id="link-input"
-                placeholder="Paste share link here… (e.g., https://sharemeweb.com/?s=abc123)"
-                aria-label="Paste session link" />
+              <input type="url" class="link-input" id="link-input" placeholder="Paste share link here…" aria-label="Paste session link" />
               <button class="btn btn-primary" id="btn-connect">Connect →</button>
             </div>
-
             <div id="status-receive" role="status" aria-live="polite"></div>
-
             <div class="incoming-file" id="incoming-file" aria-live="polite">
-              <h3 id="incoming-name">file.ext</h3>
-              <p id="incoming-size">0 KB</p>
+              <h3 id="incoming-name">file.ext</h3><p id="incoming-size">0 KB</p>
             </div>
-
             <div class="transfer-progress" id="progress-receive">
-              <div class="progress-header">
-                <span class="progress-label" id="progress-label-r">Receiving…</span>
-                <span class="progress-pct" id="progress-pct-receive">0%</span>
-              </div>
-              <div class="progress-bar-bg">
-                <div class="progress-bar-fill" id="progress-bar-receive"></div>
-              </div>
-              <div class="progress-stats">
-                <span id="progress-speed-r">Speed: —</span>
-                <span id="progress-eta-r">ETA: —</span>
-              </div>
+              <div class="progress-header"><span class="progress-label" id="progress-label-r">Receiving…</span><span class="progress-pct" id="progress-pct-receive">0%</span></div>
+              <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-bar-receive"></div></div>
+              <div class="progress-stats"><span id="progress-speed-r">Speed: —</span><span id="progress-eta-r">ETA: —</span></div>
             </div>
-
-            <button class="btn btn-success btn-lg btn-block hidden" id="btn-download">
-              ⬇️ Download File
-            </button>
+            <button class="btn btn-success btn-lg btn-block hidden" id="btn-download">⬇️ Download File</button>
           </div>
         </div>
       </div>
     </section>
-
-    <!-- AD MIDDLE -->
-    <div class="container">
-      <ins class="adsbygoogle ad-middle"
-           style="display:block"
-           data-ad-client="ca-pub-9097558719904278"
-           data-ad-slot="2222222222"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
+    <div class="container ad-slot-wrap">
+      <ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-9097558719904278" data-ad-slot="2222222222" data-ad-format="auto" data-full-width-responsive="true"></ins>
       <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
     </div>
-
-    <section class="how-it-works" aria-labelledby="hiw-title">
+    <section class="prose-section" style="background:var(--surface); border-top:1px solid var(--border);">
       <div class="container">
-        <p class="section-label">Simple Process</p>
-        <h2 class="section-title" id="hiw-title">How ShareMeWeb Works</h2>
-        <p class="section-sub">No accounts. No uploads. Files travel directly from your browser to theirs in seconds.</p>
-        <div class="steps-grid">
-          <div class="step-card">
-            <div class="step-num">1</div>
-            <span class="step-emoji">📂</span>
-            <h3>Select Your File</h3>
-            <p>Choose any file from your device — documents, photos, videos, archives. Any size, any format.</p>
-          </div>
-          <div class="step-card">
-            <div class="step-num">2</div>
-            <span class="step-emoji">🔳</span>
-            <h3>Generate QR Code</h3>
-            <p>Instantly get a unique QR code and shareable link for your transfer session.</p>
-          </div>
-          <div class="step-card">
-            <div class="step-num">3</div>
-            <span class="step-emoji">📱</span>
-            <h3>Receiver Scans QR</h3>
-            <p>Receiver scans QR code or opens the link on any device — no app download needed.</p>
-          </div>
-          <div class="step-card">
-            <div class="step-num">4</div>
-            <span class="step-emoji">⚡</span>
-            <h3>Instant Transfer</h3>
-            <p>Files transfer directly browser-to-browser at maximum speed. Encrypted end-to-end.</p>
-          </div>
-        </div>
-        <div class="text-center mt-8">
-          <a href="how-it-works.html" class="btn btn-secondary">Learn the full technical details →</a>
+        <div class="prose-body">
+          <h2>The Ultimate Guide to Free, Peer-to-Peer File Sharing</h2>
+          <p>In today's digital age, sharing files quickly and securely is a necessity. Traditional cloud storage services often force users to create accounts, pay for premium subscriptions, or wait through agonizingly slow upload times. <strong>ShareMeWeb</strong> was built to solve this exact problem by leveraging cutting-edge peer-to-peer (P2P) technology.</p>
+          <h3>Why Choose Browser-to-Browser File Transfer?</h3>
+          <p>Unlike traditional file sharing platforms like WeTransfer or Google Drive, ShareMeWeb does not store your files on a central server. Instead, it creates a direct, encrypted tunnel between the sender's device and the receiver's device. This architecture provides several massive advantages:</p>
+          <ul>
+            <li><strong>Zero Upload Wait Times:</strong> Because files aren't uploaded to a cloud server first, the transfer begins the very second the receiver scans your QR code.</li>
+            <li><strong>Absolute Privacy:</strong> Since your files never touch our servers, we physically cannot see, scan, or store your data. It is the ultimate solution for sharing sensitive work documents, personal photos, or financial records.</li>
+            <li><strong>No File Size Limits:</strong> Cloud providers limit free users to 2GB or 5GB. With our P2P WebRTC technology, you are only limited by your device's memory.</li>
+          </ul>
+          <h3>Top Use Cases for ShareMeWeb</h3>
+          <h4>1. Cross-Device Transfers (Phone to PC)</h4>
+          <p>Have you ever needed to move a photo from your iPhone to your Windows PC, but didn't have a cable? Sending it via email ruins the quality, and uploading it to the cloud takes too long. With ShareMeWeb, you simply open the site on your PC, generate a QR code, scan it with your phone, and the original, uncompressed photo transfers instantly over your local WiFi network.</p>
+          <h4>2. Freelancers and Creative Professionals</h4>
+          <p>Video editors, graphic designers, and photographers deal with massive file sizes daily. Delivering a raw video file to a client can be a logistical nightmare. ShareMeWeb allows creatives to send massive project files directly to clients in real-time without paying for expensive enterprise cloud storage.</p>
+          <h4>3. Secure Corporate Document Sharing</h4>
+          <p>When dealing with NDAs, legal contracts, or proprietary code, uploading files to third-party servers is a security risk. ShareMeWeb utilizes WebRTC DTLS (Datagram Transport Layer Security) encryption. This ensures military-grade, end-to-end encryption for every byte of data sent across the network.</p>
+          <div style="text-align:center; margin-top:30px;"><a href="how-it-works.html" class="btn btn-secondary">Read our full technical deep-dive →</a></div>
         </div>
       </div>
     </section>
-
-    <!-- Features -->
-    <section class="features" aria-labelledby="features-title">
-      <div class="container">
-        <p class="section-label">Why ShareMeWeb</p>
-        <h2 id="features-title">Private, Fast, and Free File Sharing</h2>
-        <div class="features-grid">
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">🔒</div>
-            <div>
-              <h4>End-to-End Encrypted</h4>
-              <p>WebRTC DTLS encryption protects every transfer. Files are encrypted before leaving your browser.</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">☁️</div>
-            <div>
-              <h4>Zero Cloud Storage</h4>
-              <p>Files never touch our servers. Direct browser-to-browser transfer means zero storage risk.</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">📏</div>
-            <div>
-              <h4>No File Size Limits</h4>
-              <p>Transfer files of any size — documents, videos, entire folders. No restrictions whatsoever.</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">🆓</div>
-            <div>
-              <h4>100% Free Forever</h4>
-              <p>No accounts, no subscriptions, no hidden fees. ShareMeWeb is completely free for everyone.</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">📱</div>
-            <div>
-              <h4>Works on All Devices</h4>
-              <p>Share between phone and laptop, Mac and PC, Android and iPhone — any combination works.</p>
-            </div>
-          </div>
-          <div class="feature-item">
-            <div class="feature-icon" aria-hidden="true">⚡</div>
-            <div>
-              <h4>Maximum Speed</h4>
-              <p>On the same WiFi network, transfers happen at full local network speed — up to 1 GB/s.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- SEO Content Section -->
-    <section style="padding:48px 0;background:var(--bg);">
-      <div class="container">
-        <div style="max-width:800px;margin:0 auto;">
-          <h2 style="margin-bottom:16px;">The Best Free File Sharing Tool — Faster Than WeTransfer</h2>
-          <p style="margin-bottom:16px;line-height:1.8;">ShareMeWeb is the fastest and most private way to share files between devices. Unlike traditional file sharing services that upload your files to cloud servers, ShareMeWeb uses <strong>WebRTC peer-to-peer technology</strong> to send files directly from your browser to the recipient's browser — with zero intermediary storage.</p>
-          <p style="margin-bottom:16px;line-height:1.8;">Whether you need to <strong>share files without uploading</strong>, transfer large videos, send documents between your phone and laptop, or quickly share photos with friends, ShareMeWeb makes it instant and private. Just select your file, scan a QR code, and the transfer begins immediately.</p>
-          <p style="line-height:1.8;">ShareMeWeb works on all modern browsers including Chrome, Firefox, Safari, and Edge — on Windows, Mac, Linux, Android, and iOS. No app download required, no account needed, completely free.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- AD FOOTER -->
-    <div class="container">
-      <ins class="adsbygoogle ad-footer"
-           style="display:block"
-           data-ad-client="ca-pub-9097558719904278"
-           data-ad-slot="3333333333"
-           data-ad-format="auto"
-           data-full-width-responsive="true"></ins>
-      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-    </div>
-
   </main>
-
   <footer class="site-footer">
     <div class="container">
       <div class="footer-grid">
-        <div class="footer-brand">
-          <a href="/" class="logo">
-            <img src="logo.svg" alt="ShareMeWeb" style="height:30px;width:auto;" />
-          </a>
-          <p>Instant free file sharing. No uploads, no storage, no limits.</p>
-        </div>
-        <div>
-          <p class="footer-title">Product</p>
-          <ul class="footer-links">
-            <li><a href="/">Home</a></li>
-            <li><a href="how-it-works.html">How It Works</a></li>
-            <li><a href="about.html">About Us</a></li>
-          </ul>
-        </div>
-        <div>
-          <p class="footer-title">Support</p>
-          <ul class="footer-links">
-            <li><a href="contact.html">Contact</a></li>
-            <li><a href="how-it-works.html#faq">FAQ</a></li>
-          </ul>
-        </div>
-        <div>
-          <p class="footer-title">Legal</p>
-          <ul class="footer-links">
-            <li><a href="privacy.html">Privacy Policy</a></li>
-            <li><a href="terms.html">Terms &amp; Conditions</a></li>
-          </ul>
-        </div>
+        <div class="footer-brand"><a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb" style="height:30px;width:auto;" /></a><p>Instant free file sharing. No uploads, no storage, no limits. Privacy first.</p></div>
+        <div><p class="footer-title">Product</p><ul class="footer-links"><li><a href="/">Home</a></li><li><a href="cloud.html">Cloud Vault</a></li><li><a href="how-it-works.html">How It Works</a></li></ul></div>
+        <div><p class="footer-title">Company</p><ul class="footer-links"><li><a href="blog.html">Blog</a></li><li><a href="about.html">About Us</a></li><li><a href="contact.html">Contact Support</a></li></ul></div>
+        <div><p class="footer-title">Legal</p><ul class="footer-links"><li><a href="privacy.html">Privacy Policy</a></li><li><a href="terms.html">Terms &amp; Conditions</a></li></ul></div>
       </div>
       <div class="footer-bottom">
         <p>&copy; 2026 ShareMeWeb. All rights reserved.</p>
-        <div class="footer-bottom-links">
-          <a href="privacy.html">Privacy</a>
-          <a href="terms.html">Terms</a>
-          <a href="contact.html">Contact</a>
-        </div>
+        <div class="footer-bottom-links"><a href="privacy.html">Privacy</a><a href="terms.html">Terms</a></div>
       </div>
     </div>
   </footer>
-
-  <!-- Load CDN libraries first (synchronous — must be available before our code) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-  <!-- QRCode.js — multiple CDN fallbacks -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"
-    onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js'"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
   <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <!-- Our scripts — qr.js MUST load before app.js (defines formatSize, fileEmoji etc.) -->
   <script src="webrtc.js"></script>
   <script src="qr.js"></script>
   <script src="app.js"></script>
