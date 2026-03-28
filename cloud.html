@@ -85,7 +85,7 @@
               <div class="v-drop" id="vDrop" onclick="document.getElementById('vFileInput').click()">
                 <span class="v-drop-ico">📦</span>
                 <h3>Drop files here or click to browse</h3>
-                <p>Multiple files · Max 100 MB total · Auto-split if needed<br>
+                <p>Multiple files · Max 100 MB total<br>
                 <small style="color:var(--accent);font-weight:600;">PDF · Images · Video · Audio · Archives · Documents</small></p>
               </div>
               <input type="file" id="vFileInput" multiple />
@@ -317,22 +317,137 @@
     })();
   </script>
   
+  <!-- Supabase JS — still used for METADATA (files table) only, NOT for file storage -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+  <!-- No extra SDK needed for Storj — we use a native fetch + AWS SigV4 signer built into the page -->
   <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
   
   <script>
   // ═══════════════════════════════════════════════════════
-  //  SUPABASE — 4 databases, auto-switches as each fills
+  //  STORJ S3-COMPATIBLE STORAGE — replaces Supabase storage
+  //
+  //  ⚠️  FILL IN YOUR VALUES BELOW before deploying
+  //  ─────────────────────────────────────────────────────
+  //  STORJ_ACCESS_KEY  — from Storj Dashboard → Access Keys
+  //  STORJ_SECRET_KEY  — same place as above
+  //  STORJ_BUCKET      — your bucket name (e.g. "sharemeweb-vault")
+  //  STORJ_ENDPOINT    — always "https://gateway.storjshare.io"
+  //  CDN_BASE          — your Cloudflare Worker URL (files.MYDOMAIN.com)
+  //                      used to build public download links
   // ═══════════════════════════════════════════════════════
-  const BUCKET = 'uploads'
+
+  const STORJ_CONFIG = {
+    accessKey:  'juut67lhh2shmo63mxdx5c44xuya',   
+    secretKey:  'j3uiryu2g25pi5rgt34lgwlwvfo5ptskp3cmv7nqngm655pflxm6w',   // ← replace
+    bucket:     'sharemeweb-vault23',         // ← replace  e.g.  sharemeweb-vault
+    endpoint:   'https://gateway.storjshare.io',
+    region:     'global',
+    cdnBase:    'https://files.MYDOMAIN.com', // ← replace with your Worker domain
+  }
+
+  // Max file size the UI will accept (bytes). 100 MB keeps parity with original.
+  const STORJ_MAX_BYTES = 100 * 1024 * 1024
+
+  // ── Minimal S3 upload helper (fetch + presigned headers via HMAC-SHA256) ────
+  // We use the AWS Signature Version 4 algorithm so no backend is needed.
+
+  async function _hmac(key, data) {
+    const k = typeof key === 'string' ? new TextEncoder().encode(key) : key
+    const ck = await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+    return new Uint8Array(await crypto.subtle.sign('HMAC', ck, new TextEncoder().encode(data)))
+  }
+
+  async function _sha256hex(data) {
+    const buf = data instanceof ArrayBuffer ? data : (data instanceof Uint8Array ? data.buffer : new TextEncoder().encode(data).buffer)
+    const h = await crypto.subtle.digest('SHA-256', buf)
+    return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('')
+  }
+
+  function _hex(buf) { return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join('') }
+
+  async function storjUpload(file, s3Key) {
+    const { accessKey, secretKey, bucket, endpoint, region } = STORJ_CONFIG
+    const url = `${endpoint}/${bucket}/${s3Key}`
+
+    const now = new Date()
+    const dateStamp  = now.toISOString().slice(0, 10).replace(/-/g, '')   // YYYYMMDD
+    const amzDate    = now.toISOString().replace(/[:\-]|\.\d{3}/g, '')    // YYYYMMDDTHHmmssZ
+
+    const bodyBuf    = await file.arrayBuffer()
+    const bodyHash   = await _sha256hex(bodyBuf)
+    const contentType = file.type || 'application/octet-stream'
+
+    // Headers that must be signed (must be sorted lowercase)
+    const signedHeaders = 'content-type;host;x-amz-content-sha256;x-amz-date'
+    const host = new URL(endpoint).host
+
+    const canonicalRequest = [
+      'PUT',
+      `/${bucket}/${s3Key}`,
+      '',   // no query string
+      `content-type:${contentType}\nhost:${host}\nx-amz-content-sha256:${bodyHash}\nx-amz-date:${amzDate}\n`,
+      signedHeaders,
+      bodyHash,
+    ].join('\n')
+
+    const scope = `${dateStamp}/${region}/s3/aws4_request`
+    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, scope, await _sha256hex(canonicalRequest)].join('\n')
+
+    const kDate    = await _hmac('AWS4' + secretKey, dateStamp)
+    const kRegion  = await _hmac(kDate, region)
+    const kService = await _hmac(kRegion, 's3')
+    const kSign    = await _hmac(kService, 'aws4_request')
+    const sig      = _hex(await _hmac(kSign, stringToSign))
+
+    const authHeader = `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`
+
+    const resp = await fetch(url, {
+      method: 'PUT',
+      headers: {
+        'Content-Type':          contentType,
+        'x-amz-content-sha256': bodyHash,
+        'x-amz-date':           amzDate,
+        'Authorization':         authHeader,
+        // public-read so the CDN and direct links work without extra auth
+        'x-amz-acl':            'public-read',
+      },
+      body: bodyBuf,
+    })
+
+    if (!resp.ok) {
+      const txt = await resp.text()
+      throw new Error(`Storj upload failed (${resp.status}): ${txt}`)
+    }
+
+    // Return the CDN URL (goes through Cloudflare Worker cache)
+    return `${STORJ_CONFIG.cdnBase}/${s3Key}`
+  }
+
+  // ── Safe filename generator ──────────────────────────────────────────────────
+  // Strips special characters so filenames are safe in S3 keys and URLs
+  function vSafeFilename(original) {
+    const ext  = original.includes('.') ? '.' + original.split('.').pop().toLowerCase() : ''
+    const base = original.replace(/\.[^.]+$/, '')
+      .replace(/[^a-zA-Z0-9_\-\.]/g, '_')   // replace unsafe chars
+      .replace(/_+/g, '_')                    // collapse multiple underscores
+      .slice(0, 80)                           // cap base length
+    const uid  = crypto.randomUUID().replace(/-/g, '').slice(0, 8)
+    return `${base}_${uid}${ext}`
+  }
+
+  // ── Supabase databases still used for METADATA only (files table) ────────────
+  //  Storage (actual file bytes) is now on Storj.
+  //  Metadata (code, filename, url, download_count, etc.) stays in Supabase.
+  //  This means you don't need to change your DB schema at all.
   const DBS = [
     { url: 'https://zptxcmommymnzlzlzaht.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdHhjbW9tbXltbnpsemx6YWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODE2NzEsImV4cCI6MjA4ODk1NzY3MX0.Z7XmGV8D0eliKan7oNasipcqpvAz7Pk_9J08AZB7O0Y', name: 'DB1' },
     { url: 'https://mqtaipjcugbsiitwtwjt.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xdGFpcGpjdWdic2lpdHd0d2p0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTM2NTEsImV4cCI6MjA4ODk2OTY1MX0.1QdATlz_7BUURLh3O1tw1TPydrkAQV9QfHTWw94TGKU', name: 'DB2' },
     { url: 'https://slkzslhbnvmnakskcpje.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNsa3pzbGhibnZtbmFrc2tjcGplIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5OTc5NjgsImV4cCI6MjA4OTU3Mzk2OH0.dT6if56brxmtnrHbuBmfdZY4svvcEehomq9bTHJFfgo', name: 'DB3' },
     { url: 'https://dnvxsgkwrpaaclnowyok.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRudnhzZ2t3cnBhYWNsbm93eW9rIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM5ODgxODYsImV4cCI6MjA4OTU2NDE4Nn0.rNWE-ehnmRAjd4JSsHKIySREionTRaKsOUSnQFpPy2E', name: 'DB4' },
   ]
+  // Load Supabase JS (metadata only — no storage calls)
+  // The Supabase CDN script must be present in <head>; we re-use it here.
   DBS.forEach(db => db.sb = window.supabase.createClient(db.url, db.key))
-  const sb1 = DBS[0].sb, sb2 = DBS[1].sb
 
   // State
   let vPickedFiles = [], vCurCode = null, vRetRecord = null, vRetSb = null, vCountdownIv = null
@@ -348,16 +463,8 @@
   function vHideAlert(id){document.getElementById(id).classList.remove('show')}
   function vRandCode(){let c='';for(let i=0;i<10;i++)c+=Math.floor(Math.random()*10);return c}
 
-  async function vGetActiveDb() {
-    for(const db of DBS){
-      try{
-        const{data}=await db.sb.from('files').select('filesize')
-        const used=(data||[]).reduce((s,r)=>s+(r.filesize||0),0)
-        if(used<900*1024*1024)return{sb:db.sb,dbName:db.name}
-      }catch(e){}
-    }
-    return{sb:DBS[0].sb,dbName:'DB1'}
-  }
+  // vGetActiveDb removed — Storj has no per-bucket 900 MB cap.
+  // Metadata DB is selected by vSearchAllDbs / first available DB logic below.
 
   async function vSearchAllDbs(code) {
     for(const db of DBS){
@@ -412,9 +519,8 @@
   function vRenderList() {
     const list=document.getElementById('vFileList');list.innerHTML=''
     vPickedFiles.forEach((f,i)=>{
-      const split=f.size>50*1024*1024
       const div=document.createElement('div');div.className='v-file-item'
-      div.innerHTML=`<div class="v-f-ico">${vIco(f.name)}</div><div class="v-f-info"><div class="v-f-name">${f.name}</div><div class="v-f-meta">${vFmt(f.size)} · ${f.type||'Unknown'}</div>${split?'<div class="v-f-split">⚡ Will be split across 2 databases</div>':''}</div><button class="v-btn-rm" onclick="vRemoveFile(${i})">✕</button>`
+      div.innerHTML=`<div class="v-f-ico">${vIco(f.name)}</div><div class="v-f-info"><div class="v-f-name">${f.name}</div><div class="v-f-meta">${vFmt(f.size)} · ${f.type||'Unknown'}</div></div><button class="v-btn-rm" onclick="vRemoveFile(${i})">✕</button>`
       list.appendChild(div)
     })
     document.getElementById('vUpBtn').disabled=vPickedFiles.length===0
@@ -448,33 +554,21 @@
     
     try{
       const code=await vGenCode()
+      // ── MAX SIZE GUARD ──────────────────────────────────────────
+      const totalBytes = vPickedFiles.reduce((s,f)=>s+f.size,0)
+      if(totalBytes > STORJ_MAX_BYTES) throw new Error('Total exceeds 100 MB limit.')
+
       const urls=[]
       for(let i=0;i<vPickedFiles.length;i++){
         const f=vPickedFiles[i];ptxt.textContent=`Uploading ${f.name}...`
-        if(f.size>50*1024*1024){
-          // Use .slice for large files to avoid memory crash
-          const mid=Math.ceil(f.size/2)
-          const b1=f.slice(0,mid,f.type||'application/octet-stream')
-          const b2=f.slice(mid,f.size,f.type||'application/octet-stream')
-          const p1=`${code}/${f.name}.part1`,p2=`${code}/${f.name}.part2`
-          const{error:e1}=await sb1.storage.from(BUCKET).upload(p1,b1,{upsert:false})
-          if(e1)throw new Error('Storage: '+e1.message)
-          const{error:e2}=await sb2.storage.from(BUCKET).upload(p2,b2,{upsert:false})
-          if(e2)throw new Error('Storage: '+e2.message)
-          const{data:u1}=sb1.storage.from(BUCKET).getPublicUrl(p1)
-          const{data:u2}=sb2.storage.from(BUCKET).getPublicUrl(p2)
-          urls.push({name:f.name,url:u1.publicUrl,url2:u2.publicUrl,split:true,size:f.size,type:f.type})
-        }else{
-          const{sb:aSb}=await vGetActiveDb()
-          const path=`${code}/${f.name}`
-          const{error:ue}=await aSb.storage.from(BUCKET).upload(path,f,{upsert:false})
-          if(ue)throw new Error('Storage: '+ue.message)
-          const{data:ud}=aSb.storage.from(BUCKET).getPublicUrl(path)
-          urls.push({name:f.name,url:ud.publicUrl,split:false,size:f.size,type:f.type})
-        }
+        // ── Storj upload — single PUT, no split needed ────────────
+        const safeKey = `${code}/${vSafeFilename(f.name)}`
+        const publicUrl = await storjUpload(f, safeKey)
+        urls.push({name:f.name,url:publicUrl,url2:null,split:false,size:f.size,type:f.type})
       }
       
-      const{sb:saveSb}=await vGetActiveDb()
+      // Save metadata (code, URL, options) to Supabase DB1
+      const saveSb = DBS[0].sb
       const ff=vPickedFiles[0]
       const{error:de}=await saveSb.from('files').insert([{
         code,file_url:urls[0].url,file_url2:urls[0].url2||null,
