@@ -1,7 +1,12 @@
+# robots.txt for https://sharemeweb.com
+# Clean, valid, SEO + AdSense optimized
+
 User-agent: *
 Allow: /
 
+# Block backend and data files
 Disallow: /api/
 Disallow: /*.json
 
+# Sitemap location
 Sitemap: https://sharemeweb.com/sitemap.xml
