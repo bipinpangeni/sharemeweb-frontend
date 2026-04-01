@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9097558719904278" crossorigin="anonymous"></script>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to Share Files Without Google Drive or Dropbox — ShareMeWeb</title>
+  <meta name="description" content="Tired of Google Drive storage limits? Discover how to share files online without Google Drive, Dropbox or any cloud account — fast, private, and completely free." />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body { font-family: var(--font, 'Segoe UI', sans-serif); color: var(--text, #111); background: var(--bg, #f9fafb); margin: 0; }
+    .site-header { position: sticky; top: 0; z-index: 100; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; max-width: 1200px; margin: 0 auto; position: relative; }
+    .logo { display: flex; align-items: center; text-decoration: none; }
+    .nav-links { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
+    .nav-links li a { display: block; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: .9rem; font-weight: 500; color: var(--text-muted, #6b7280); transition: background .15s, color .15s; }
+    .nav-links li a:hover { background: var(--surface-2, #f3f4f6); color: var(--text, #111); }
+    .nav-links li a.active { background: var(--accent-light, #eff6ff); color: var(--accent, #3b82f6); font-weight: 600; }
+    .nav-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; }
+    .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--text, #111); border-radius: 2px; transition: transform .25s ease, opacity .2s ease; }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    @media (max-width: 640px) {
+      .nav-toggle { display: flex; }
+      .nav-links { display: none; flex-direction: column; gap: 4px; position: absolute; top: 60px; left: 0; right: 0; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); padding: 12px 16px 16px; box-shadow: 0 8px 20px rgba(0,0,0,.08); }
+      .nav-links.open { display: flex; }
+      .nav-links li a { padding: 10px 14px; font-size: .95rem; }
+    }
+    .page-hero { background: linear-gradient(135deg, #fdf4ff 0%, #eff6ff 100%); padding: 56px 24px 40px; text-align: center; border-bottom: 1px solid var(--border, #e5e7eb); }
+    .page-hero .badge { display: inline-block; background: #7c3aed; color: white; font-size: .75rem; font-weight: 700; padding: 4px 12px; border-radius: 999px; letter-spacing: .05em; margin-bottom: 16px; }
+    .page-hero h1 { font-size: clamp(1.6rem, 4vw, 2.4rem); margin: 0 0 14px; color: var(--text, #111); max-width: 700px; margin-left: auto; margin-right: auto; }
+    .page-hero p { font-size: 1.05rem; color: var(--text-muted, #4b5563); max-width: 580px; margin: 0 auto 28px; line-height: 1.7; }
+    .cta-btn { display: inline-block; background: #7c3aed; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 700; font-size: 1rem; transition: opacity .15s; }
+    .cta-btn:hover { opacity: .88; }
+    .article-wrap { max-width: 780px; margin: 0 auto; padding: 40px 24px 60px; }
+    .article-wrap h2 { font-size: 1.45rem; color: var(--text, #111); margin: 40px 0 14px; border-left: 4px solid #7c3aed; padding-left: 14px; }
+    .article-wrap h3 { font-size: 1.1rem; color: var(--text, #111); margin: 28px 0 10px; }
+    .article-wrap p { font-size: .97rem; line-height: 1.85; color: var(--text-muted, #374151); margin-bottom: 18px; }
+    .compare-table { width: 100%; border-collapse: collapse; margin: 24px 0; font-size: .9rem; }
+    .compare-table th { background: #7c3aed; color: white; padding: 12px 14px; text-align: left; }
+    .compare-table td { padding: 11px 14px; border-bottom: 1px solid var(--border, #e5e7eb); color: var(--text-muted, #374151); }
+    .compare-table tr:nth-child(even) td { background: var(--surface-2, #f9fafb); }
+    .compare-table .yes { color: #16a34a; font-weight: 700; }
+    .compare-table .no { color: #dc2626; font-weight: 700; }
+    .highlight-box { background: #fdf4ff; border: 1px solid #e9d5ff; border-radius: 10px; padding: 18px 22px; margin: 24px 0; font-size: .93rem; line-height: 1.75; color: #581c87; }
+    .highlight-box strong { display: block; margin-bottom: 4px; font-size: 1rem; }
+    .tip { background: #f0fdf4; border: 1px solid #86efac; border-radius: 8px; padding: 14px 18px; margin: 20px 0; font-size: .9rem; color: #166534; line-height: 1.7; }
+    .cta-banner { background: linear-gradient(135deg, #6d28d9, #7c3aed); border-radius: 12px; padding: 32px; text-align: center; margin: 40px 0; color: white; }
+    .cta-banner h3 { font-size: 1.4rem; margin: 0 0 10px; }
+    .cta-banner p { margin: 0 0 20px; opacity: .9; font-size: .95rem; }
+    .cta-banner a { background: white; color: #6d28d9; padding: 12px 28px; border-radius: 8px; font-weight: 700; text-decoration: none; font-size: .95rem; }
+    footer { text-align: center; padding: 28px; font-size: .85rem; color: var(--text-muted, #9ca3af); border-top: 1px solid var(--border, #e5e7eb); }
+  </style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb" style="height:36px;width:auto;" /></a>
+    <nav aria-label="Main navigation">
+      <button class="nav-toggle" id="navToggle" onclick="toggleNav()"><span></span><span></span><span></span></button>
+      <ul class="nav-links" id="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="cloud.html">Vault</a></li>
+        <li><a href="blog.html" class="active">Blog</a></li>
+        <li><a href="contact.html">Contact</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<div class="page-hero">
+  <span class="badge">GOOGLE DRIVE ALTERNATIVE</span>
+  <h1>How to Share Files Online Without Google Drive or Dropbox</h1>
+  <p>Google's 15 GB free storage fills up faster than you think. Here is how to share files instantly — no cloud account, no storage limits, no privacy trade-offs.</p>
+  <a href="cloud.html" class="cta-btn">☁️ Share Files Free on Vault</a>
+</div>
+
+<div class="article-wrap">
+
+  <p>Google Drive is one of the most used services on the internet — and one of the most frustrating once you run out of storage. That 15 GB free tier sounds generous until you realise it is shared across Gmail, Google Photos, and Drive all at once. A few years of emails with attachments, a couple of phone backups, and some shared documents can chew through it surprisingly quickly. Then you are left with two choices: pay for Google One, or start frantically deleting things you probably do not want to delete.</p>
+
+  <p>But here is the thing most people do not realise — you do not actually need a cloud storage account to share files. For the majority of everyday file sharing situations, a dedicated file transfer tool works faster, more privately, and completely free. You are not storing files permanently anyway; you just need the recipient to be able to download them. That is a very different use case from what Google Drive was designed for, and there are tools built specifically for it.</p>
+
+  <h2>What Google Drive Is Really For (And What It Is Not)</h2>
+
+  <p>Google Drive is a cloud storage platform. It is designed to store your files permanently, sync them across devices, let you access them from anywhere, and collaborate with others on documents in real time. For those use cases — ongoing access, version history, team collaboration — Drive is genuinely great. Nobody is arguing otherwise.</p>
+
+  <p>But a huge portion of the time, people use Drive for something much simpler: "I need to get this file from my device to someone else's device." That is file transfer, not file storage. And using Drive for file transfer means uploading to your limited personal storage, generating a share link, hoping the permission settings are correct, and leaving the file on your account indefinitely taking up space. It is like using a filing cabinet to hand someone a letter.</p>
+
+  <p>For quick file transfers — especially large ones — a purpose-built transfer tool is simply the better fit. No storage quota consumed. No permissions to configure. No file sitting in your account for months after the transfer is done.</p>
+
+  <h2>How ShareMeWeb Vault Compares to Google Drive and Dropbox</h2>
+
+  <table class="compare-table">
+    <thead>
+      <tr><th>Feature</th><th>ShareMeWeb Vault</th><th>Google Drive (Free)</th><th>Dropbox (Free)</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Account required</td><td class="yes">No</td><td class="no">Yes</td><td class="no">Yes</td></tr>
+      <tr><td>Max file size (free)</td><td class="yes">3 GB</td><td>5 TB (eats storage)</td><td class="no">2 GB</td></tr>
+      <tr><td>Free storage quota</td><td class="yes">No quota</td><td class="no">15 GB shared</td><td class="no">2 GB</td></tr>
+      <tr><td>Password protection</td><td class="yes">Yes</td><td class="no">No (free)</td><td class="no">No (free)</td></tr>
+      <tr><td>Auto-expiry</td><td class="yes">Yes (1h / 24h / 7d)</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Download limit</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Setup time</td><td class="yes">Instant</td><td class="no">Account setup needed</td><td class="no">Account setup needed</td></tr>
+    </tbody>
+  </table>
+
+  <p>The table above shows something that might surprise you. For pure file transfer — get a file from A to B — ShareMeWeb Vault actually has more relevant features than the free tier of either Google Drive or Dropbox. Neither of those services offer password protection, auto-expiry, or download limits on their free plans. For any situation where you care about security and control over who downloads what and when, Vault has the edge.</p>
+
+  <h2>Real Situations Where You Do Not Need Google Drive</h2>
+
+  <p>Let us talk about specific scenarios where skipping Drive entirely makes more sense.</p>
+
+  <h3>Sending a client their finished project</h3>
+
+  <p>You have finished a logo design, a video edit, or a set of final documents. The client needs the files. If you upload to Drive and share, the files stay in your storage forever, the client might lose the link, and you have no control over how many times it gets downloaded or forwarded. With Vault, you upload, set a 24-hour expiry and a 1-download limit, and the moment the client downloads it, it is done. Clean. Controlled. No orphaned files in your account three years later.</p>
+
+  <h3>Sharing a large video with family</h3>
+
+  <p>Phone videos shot in 4K are massive. A ten-minute family video can easily be 3–4 GB. You cannot email it. WhatsApp compresses it into something unwatchable. Google Photos might work but requires everyone to have an account and find the shared album. With Vault, you upload the original full-quality file, send the 10-digit code in a text message, and whoever you send it to downloads the full uncompressed video. No accounts on either side.</p>
+
+  <h3>Moving files between your own devices</h3>
+
+  <p>This is one people rarely think of, but it is incredibly useful. You are on your work computer and need a file on your personal laptop at home. Emailing yourself a large file is annoying. AirDrop only works on Apple devices. Vault lets you upload from one device, retrieve on another — no cables, no accounts, no sync setup. The code-based system means there is no link to expire or permission to manage.</p>
+
+  <h3>Sharing sensitive documents briefly</h3>
+
+  <p>Signed contracts, tax documents, medical records — there are files you need to send to someone once and never want floating around indefinitely. Drive links can be bookmarked, forwarded, and accessed months later by anyone who has the URL unless you actively revoke it. Vault files self-destruct after your chosen expiry period. For a one-time secure document handoff, there is simply no better free option.</p>
+
+  <h2>The Privacy Angle — What Happens to Your Files on Google Drive?</h2>
+
+  <p>This is worth understanding, especially if you regularly share business or personal files. When you store files on Google Drive, those files are subject to Google's privacy policy and terms of service. Google has the right to scan file contents for various purposes — policy compliance, their own systems, and in some cases advertising signals. For the vast majority of users this is an acceptable trade-off for the convenience of Drive. But if you are sharing anything professionally sensitive — client data, proprietary work, personal documents — it is worth knowing that a third party has access to your stored files.</p>
+
+  <p>With ShareMeWeb Vault, files are stored on Storj's distributed infrastructure, which encrypts and distributes file pieces across a decentralised network. Files are not indexed, not scanned for content, and are permanently deleted after expiry. For temporary file transfers, this is a cleaner privacy model.</p>
+
+  <div class="highlight-box">
+    <strong>Bottom line on privacy</strong>
+    If you are sharing files that you would not want a major tech company to have permanent access to, a purpose-built transfer service with auto-expiry is the smarter choice over cloud storage that retains your files indefinitely.
+  </div>
+
+  <h2>When You Should Still Use Google Drive</h2>
+
+  <p>To be fair — and useful — there are absolutely situations where Drive is the right tool. If you need long-term file storage accessible from multiple devices, Drive is excellent. If you are collaborating on Google Docs or Sheets with a team in real time, there is no better free option. If you want to share a folder of files that you will keep adding to over time, Drive's folder sharing is hard to beat.</p>
+
+  <p>The point is not that Drive is bad. The point is that for temporary file transfers — especially large ones — you do not need to sacrifice your storage quota or set up permissions just to hand someone a file. Use Drive for what it is great at and use Vault for quick, clean, private file transfers that do not leave a permanent footprint on your account.</p>
+
+  <div class="tip">
+    💡 A good rule of thumb: if you would want the file deleted after the person downloads it, use Vault. If you want to keep it accessible long-term, use Drive.
+  </div>
+
+  <h2>How to Get Started in Under Two Minutes</h2>
+
+  <p>Getting a file to someone using ShareMeWeb Vault takes less time than uploading to Drive and configuring sharing permissions. Visit the Vault page, drag your file onto the upload area, choose your settings, and click upload. You will have a 10-digit code within seconds for small files or a few minutes for larger ones. Share the code by any means — text, email, chat app — and the recipient enters it at the Retrieve tab to download their file. There is nothing else to it.</p>
+
+  <div class="cta-banner">
+    <h3>Skip the Storage Quota Headaches</h3>
+    <p>No Google account needed. No storage limit. Just upload and share — completely free.</p>
+    <a href="cloud.html">Try ShareMeWeb Vault →</a>
+  </div>
+
+  <h2>Frequently Asked Questions</h2>
+
+  <h3>What if I need to send more than 3 GB?</h3>
+  <p>For files larger than 3 GB, the best approach is to compress them into a ZIP archive first — compression can significantly reduce file size, especially for uncompressed video or raw image formats. Alternatively, split the content across two separate uploads with two different codes.</p>
+
+  <h3>Can I share the code publicly, like on social media?</h3>
+  <p>Technically yes, but it is not recommended for private files. The code is unique and hard to guess, but anyone who sees it can download the file. For public distribution, it works fine. For private files, use the password feature and only share the code and password with intended recipients.</p>
+
+  <h3>How is this different from WeTransfer?</h3>
+  <p>WeTransfer is a well-known file transfer service, but its free tier limits transfers to 2 GB and the files expire after a fixed period regardless of your preference. ShareMeWeb Vault offers 3 GB, gives you control over expiry time, download limits, and password protection — all on the free tier. It is also built around a code-based retrieval system rather than a link, which some users find easier to share verbally or via text.</p>
+
+</div>
+
+<footer>
+  <p>© 2025 ShareMeWeb · <a href="/">Home</a> · <a href="cloud.html">Vault</a> · <a href="blog.html">Blog</a> · <a href="contact.html">Contact</a></p>
+</footer>
+
+<script>
+  function toggleNav() {
+    document.getElementById('navToggle').classList.toggle('open');
+    document.getElementById('nav-links').classList.toggle('open');
+  }
+  document.querySelectorAll('#nav-links a').forEach(a => a.addEventListener('click', () => {
+    document.getElementById('navToggle').classList.remove('open');
+    document.getElementById('nav-links').classList.remove('open');
+  }));
+</script>
+</body>
+</html>
