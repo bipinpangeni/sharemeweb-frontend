@@ -59,12 +59,25 @@
 
     /* ── FIXED Navigation ── */
     .site-header { position: sticky; top: 0; z-index: 100; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); }
-    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; max-width: 1200px; margin: 0 auto; }
+    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; max-width: 1200px; margin: 0 auto; position: relative; }
     .logo { display: flex; align-items: center; text-decoration: none; }
     .nav-links { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
     .nav-links li a { display: block; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: .9rem; font-weight: 500; color: var(--text-muted, #6b7280); transition: background .15s, color .15s; }
     .nav-links li a:hover { background: var(--surface-2, #f3f4f6); color: var(--text, #111); }
     .nav-links li a.active { background: var(--accent-light, #eff6ff); color: var(--accent, #3b82f6); font-weight: 600; }
+    /* ── Hamburger button ── */
+    .nav-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; }
+    .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--text, #111); border-radius: 2px; transition: transform .25s ease, opacity .2s ease; }
+    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .nav-toggle.open span:nth-child(2) { opacity: 0; }
+    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+    @media (max-width: 640px) {
+      .nav-toggle { display: flex; }
+      .nav-links { display: none; flex-direction: column; gap: 4px; position: absolute; top: 60px; left: 0; right: 0; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); padding: 12px 16px 16px; box-shadow: 0 8px 20px rgba(0,0,0,.08); animation: navSlide .2s ease; }
+      .nav-links.open { display: flex; }
+      @keyframes navSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
+      .nav-links li a { padding: 10px 14px; font-size: .95rem; border-radius: 8px; }
+    }
 
     /* ── Content sections below the vault card ── */
     .content-section { max-width: 820px; margin: 0 auto 48px; }
@@ -97,6 +110,9 @@
     <div class="header-inner">
       <a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" /></a>
       <nav aria-label="Main navigation">
+        <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" onclick="toggleNav()">
+          <span></span><span></span><span></span>
+        </button>
         <ul class="nav-links" id="nav-links">
           <li><a href="/">Home</a></li>
           <li><a href="cloud.html" class="active">Vault</a></li>
@@ -488,6 +504,21 @@
     const open = ans.classList.toggle('open');
     icon.textContent = open ? '－' : '＋';
   }
+
+  function toggleNav() {
+    const toggle = document.getElementById('navToggle');
+    const links = document.getElementById('nav-links');
+    toggle.classList.toggle('open');
+    links.classList.toggle('open');
+  }
+
+  // Close nav when a link is clicked on mobile
+  document.querySelectorAll('#nav-links a').forEach(a => {
+    a.addEventListener('click', () => {
+      document.getElementById('navToggle').classList.remove('open');
+      document.getElementById('nav-links').classList.remove('open');
+    });
+  });
   </script>
 </body>
 </html>
