@@ -193,12 +193,24 @@
               <input class="v-code-in" id="vCodeIn" type="text" placeholder="Enter 10-digit code" maxlength="10" oninput="vOnCodeType()" />
               <button class="v-btn-search" id="vSrchBtn" onclick="vDoSearch()" disabled>Search →</button>
             </div>
-            <div id="vFileFound" class="v-found" style="margin-top:20px;">
-                <div class="v-found-box" style="padding:20px; border:1px solid var(--border);">
-                    <h3 id="vFoundName">---</h3>
-                    <p id="vFoundSize">---</p>
-                    <button class="v-btn-dl" id="vDlBtn" onclick="vDoDownload()" style="width:100%; background:var(--accent); color:white; border:none; padding:12px; border-radius:8px; cursor:pointer;">⬇️ Download File</button>
-                </div>
+
+            <!-- Password prompt (hidden until needed) -->
+            <div id="vPwRow" style="display:none; margin-top:12px;">
+              <input class="v-input" type="password" id="vPwIn" placeholder="🔑 Enter file password..." />
+              <button onclick="vConfirmPassword()" style="margin-top:8px; width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-weight:600;">Unlock File</button>
+            </div>
+
+            <!-- Status message -->
+            <div id="vRetrieveMsg" style="display:none; margin-top:12px; padding:10px 14px; border-radius:var(--radius-sm); font-size:.875rem;"></div>
+
+            <!-- File result (hidden until found) -->
+            <div id="vFileFound" style="display:none; margin-top:20px;">
+              <div style="padding:20px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2);">
+                <div style="font-size:1.5rem; margin-bottom:8px;">📦</div>
+                <h3 id="vFoundName" style="margin:0 0 4px; font-size:1rem;"></h3>
+                <p id="vFoundSize" style="margin:0 0 16px; font-size:.85rem; color:var(--text-muted);"></p>
+                <div id="vFileButtons"></div>
+              </div>
             </div>
           </div>
         </div>
@@ -474,23 +486,126 @@
 
   function vOnCodeType() {
     document.getElementById('vSrchBtn').disabled = document.getElementById('vCodeIn').value.length !== 10;
+    // reset UI on new input
+    document.getElementById('vFileFound').style.display = 'none';
+    document.getElementById('vPwRow').style.display = 'none';
+    vShowMsg('', '');
+  }
+
+  function vShowMsg(text, type) {
+    const el = document.getElementById('vRetrieveMsg');
+    if (!text) { el.style.display = 'none'; return; }
+    el.style.display = 'block';
+    el.style.background = type === 'err' ? '#fef2f2' : '#f0fdf4';
+    el.style.border    = type === 'err' ? '1px solid #fecaca' : '1px solid #86efac';
+    el.style.color     = type === 'err' ? '#dc2626' : '#166534';
+    el.textContent = text;
   }
 
   async function vDoSearch() {
-    const code = document.getElementById('vCodeIn').value;
-    const {data} = await sbClient.from('files').select('*').eq('code', code).maybeSingle();
-    if(data) {
-        vRetRecord = data;
-        document.getElementById('vFoundName').textContent = data.filename;
-        document.getElementById('vFoundSize').textContent = (data.filesize/1024/1024).toFixed(2) + " MB";
-        document.getElementById('vFileFound').classList.add('show');
-    } else {
-        alert("File not found");
+    const btn = document.getElementById('vSrchBtn');
+    btn.disabled = true;
+    btn.textContent = 'Searching…';
+    vShowMsg('', '');
+    document.getElementById('vFileFound').style.display = 'none';
+    document.getElementById('vPwRow').style.display = 'none';
+
+    try {
+      const code = document.getElementById('vCodeIn').value.trim();
+      const { data, error } = await sbClient.from('files').select('*').eq('code', code).maybeSingle();
+
+      if (error) throw new Error('Database error: ' + error.message);
+
+      if (!data) {
+        vShowMsg('❌ No file found with that code. Please check and try again.', 'err');
+        return;
+      }
+
+      // Check expiry
+      if (data.expires_at && new Date(data.expires_at) < new Date()) {
+        vShowMsg('⏰ This file has expired and is no longer available.', 'err');
+        return;
+      }
+
+      // Check download limit
+      const dlCount = data.download_count || 0;
+      const maxDl   = data.max_downloads  || 1;
+      if (dlCount >= maxDl) {
+        vShowMsg('⛔ This file has reached its maximum number of downloads.', 'err');
+        return;
+      }
+
+      vRetRecord = data;
+
+      // Password protected?
+      if (data.password) {
+        document.getElementById('vPwRow').style.display = 'block';
+        document.getElementById('vPwIn').value = '';
+        vShowMsg('🔑 This file is password protected. Enter the password to continue.', 'ok');
+        return;
+      }
+
+      vShowFile();
+    } catch(err) {
+      vShowMsg('❌ ' + err.message, 'err');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Search →';
     }
   }
 
-  function vDoDownload() {
-    window.open(vRetRecord.file_url, '_blank');
+  function vConfirmPassword() {
+    const entered = document.getElementById('vPwIn').value;
+    if (!entered) { vShowMsg('Please enter the password.', 'err'); return; }
+    if (entered !== vRetRecord.password) {
+      vShowMsg('❌ Incorrect password. Please try again.', 'err');
+      return;
+    }
+    document.getElementById('vPwRow').style.display = 'none';
+    vShowMsg('', '');
+    vShowFile();
+  }
+
+  function vShowFile() {
+    const data = vRetRecord;
+    document.getElementById('vFoundName').textContent = data.filename;
+
+    const sizeMB = (data.filesize / 1024 / 1024).toFixed(2);
+    const dlLeft = (data.max_downloads || 1) - (data.download_count || 0);
+    document.getElementById('vFoundSize').textContent = sizeMB + ' MB  ·  ' + dlLeft + ' download(s) remaining';
+
+    // Build download buttons — support multi-file via all_files
+    const btnWrap = document.getElementById('vFileButtons');
+    btnWrap.innerHTML = '';
+
+    let files = [];
+    try { files = JSON.parse(data.all_files || '[]'); } catch(e) {}
+    if (!files.length) files = [{ name: data.filename, url: data.file_url }];
+
+    files.forEach(f => {
+      const b = document.createElement('button');
+      b.textContent = '⬇️ Download ' + f.name;
+      b.style = 'display:block; width:100%; margin-bottom:8px; padding:12px; background:var(--accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-weight:600; font-size:.9rem; text-align:left;';
+      b.onclick = () => vDoDownload(f.url);
+      btnWrap.appendChild(b);
+    });
+
+    document.getElementById('vFileFound').style.display = 'block';
+  }
+
+  async function vDoDownload(url) {
+    // Increment download count in Supabase
+    try {
+      const newCount = (vRetRecord.download_count || 0) + 1;
+      await sbClient.from('files').update({ download_count: newCount }).eq('code', vRetRecord.code);
+      vRetRecord.download_count = newCount;
+      // Update remaining count label
+      const dlLeft = (vRetRecord.max_downloads || 1) - newCount;
+      document.getElementById('vFoundSize').textContent =
+        (vRetRecord.filesize / 1024 / 1024).toFixed(2) + ' MB  ·  ' + dlLeft + ' download(s) remaining';
+    } catch(e) { /* non-blocking */ }
+
+    window.open(url, '_blank');
   }
 
   function vCopyCode() {
