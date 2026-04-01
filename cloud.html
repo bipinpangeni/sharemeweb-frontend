@@ -5,635 +5,391 @@
   <meta charset="UTF-8" />
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>ShareMeWeb Vault — Secure Cloud File Storage & Sharing</title>
-  <meta name="description" content="ShareMeWeb Vault lets you upload files to secure cloud storage and share them with a unique 10-digit code. Advanced password protection, download limits, and auto-expiry." />
+  <title>ShareMeWeb Vault — Secure Cloud File Storage</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* ── Vault page styles ── */
+    /* Vault page styles */
     .vault-hero { padding: 48px 0 32px; text-align: center; }
     .vault-hero h1 { margin-bottom: 14px; color: var(--text); }
     .vault-hero p { max-width: 560px; margin: 0 auto 28px; font-size: 1.05rem; }
-    .vault-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-width: 820px; margin: 0 auto 40px; overflow: hidden; }
-    .vault-tab-bar { display: flex; border-bottom: 1px solid var(--border); background: var(--surface-2); }
-    .vault-tab { flex: 1; padding: 14px; border: none; background: none; cursor: pointer; font-family: var(--font); font-size: .9rem; font-weight: 600; color: var(--text-muted); transition: all var(--transition); border-bottom: 2px solid transparent; margin-bottom: -1px; }
-    .vault-tab.active { color: var(--accent); background: var(--surface); border-bottom-color: var(--accent); }
-    .vault-panel { display: none; padding: 32px; }
-    .vault-panel.active { display: block; animation: vfadeIn .3s ease; }
-    @keyframes vfadeIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:none} }
-    .v-drop { border: 2px dashed var(--border); border-radius: var(--radius); padding: 44px 28px; text-align: center; cursor: pointer; transition: all var(--transition); background: var(--surface-2); }
-    .v-drop:hover, .v-drop.over { border-color: var(--accent); background: var(--accent-light); }
-    .v-drop-ico { font-size: 3rem; margin-bottom: 12px; display: block; transition: transform .2s; }
-    .v-drop.over .v-drop-ico { transform: scale(1.1) translateY(-4px); }
-    .v-drop h3 { font-size: 1.1rem; color: var(--text); margin-bottom: 6px; }
-    .v-drop p { font-size: .85rem; }
-    #vFileInput { display: none; }
-    .v-file-list { margin-top: 14px; display: flex; flex-direction: column; gap: 8px; }
-    .v-file-item { padding: 12px 16px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); display: flex; align-items: center; gap: 12px; }
-    .v-f-ico { width: 38px; height: 38px; background: var(--accent-light); border: 1px solid var(--border); border-radius: var(--radius-sm); display: grid; place-items: center; font-size: 18px; flex-shrink: 0; }
-    .v-f-info { flex: 1; min-width: 0; }
-    .v-f-name { font-size: .88rem; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text); }
-    .v-f-meta { font-size: .75rem; color: var(--text-muted); margin-top: 2px; }
-    .v-btn-rm { background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 1.2rem; padding: 4px 6px; transition: color var(--transition); border-radius: 4px; }
-    .v-btn-rm:hover { color: var(--error); }
-    .v-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-    .v-opt { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 14px 16px; }
-    .v-opt-label { font-size: .75rem; font-weight: 700; color: var(--text-muted); letter-spacing: .06em; text-transform: uppercase; margin-bottom: 8px; display: block; }
-    .v-input { width: 100%; padding: 9px 12px; background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-family: var(--font); font-size: .9rem; color: var(--text); outline: none; transition: border-color var(--transition); }
-    .v-input:focus { border-color: var(--accent); }
-    .v-prog { display: none; margin-top: 14px; }
-    .v-prog.show { display: block; }
-    .v-prog-row { display: flex; justify-content: space-between; font-size: .8rem; color: var(--text-muted); margin-bottom: 6px; }
-    .v-prog-track { height: 6px; background: var(--surface-2); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
-    .v-prog-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #60a5fa); border-radius: 999px; width: 0%; transition: width .25s ease; }
-    .v-alert { display: none; padding: 12px 16px; border-radius: var(--radius-sm); font-size: .875rem; margin-top: 12px; align-items: center; gap: 8px; }
-    .v-alert.show { display: flex; }
-    .v-alert-err { background: #fef2f2; border: 1px solid #fecaca; color: var(--error); }
-    .v-result { display: none; }
-    .v-result.show { display: block; animation: vfadeIn .4s ease; }
-    .v-code-row { display: flex; margin-bottom: 12px; border-radius: var(--radius-sm); overflow: hidden; border: 1.5px solid var(--border); }
-    .v-code-val { flex: 1; font-family: var(--font-mono); font-size: clamp(1.2rem, 4vw, 1.8rem); font-weight: 700; letter-spacing: .2em; color: var(--accent); background: var(--surface); padding: 14px 16px; text-align: center; }
-    .v-btn-copy-code { padding: 14px 18px; background: var(--surface-2); border: none; border-left: 1.5px solid var(--border); color: var(--text); font-family: var(--font); font-size: .85rem; font-weight: 600; cursor: pointer; transition: all var(--transition); white-space: nowrap; }
-    .v-btn-copy-code:hover { background: var(--accent); color: white; }
-    .v-spin { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,.3); border-top-color: currentColor; border-radius: 50%; animation: vspin .55s linear infinite; display: inline-block; vertical-align: middle; }
-    @keyframes vspin { to { transform: rotate(360deg); } }
+    .vault-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); max-width: 820px; margin: 0 auto 60px; overflow: hidden; position: relative; }
+    .vault-tabs { display: flex; border-bottom: 1px solid var(--border); background: #f9fafb; }
+    .vault-tab { flex: 1; padding: 18px; border: none; background: none; font-weight: 600; cursor: pointer; color: var(--text-light); transition: 0.2s; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .vault-tab.active { background: var(--surface); color: var(--primary); border-bottom: 2px solid var(--primary); }
+    .vault-content { padding: 32px; min-height: 380px; }
+    .vault-panel { display: none; }
+    .vault-panel.active { display: block; animation: fadeIn 0.3s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    /* ── FIXED Navigation ── */
-    .site-header { position: sticky; top: 0; z-index: 100; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); }
-    .header-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; max-width: 1200px; margin: 0 auto; position: relative; }
-    .logo { display: flex; align-items: center; text-decoration: none; }
-    .nav-links { list-style: none; margin: 0; padding: 0; display: flex; gap: 8px; }
-    .nav-links li a { display: block; padding: 8px 14px; border-radius: 6px; text-decoration: none; font-size: .9rem; font-weight: 500; color: var(--text-muted, #6b7280); transition: background .15s, color .15s; }
-    .nav-links li a:hover { background: var(--surface-2, #f3f4f6); color: var(--text, #111); }
-    .nav-links li a.active { background: var(--accent-light, #eff6ff); color: var(--accent, #3b82f6); font-weight: 600; }
-    /* ── Hamburger button ── */
-    .nav-toggle { display: none; flex-direction: column; justify-content: center; gap: 5px; background: none; border: none; cursor: pointer; padding: 6px; border-radius: 6px; }
-    .nav-toggle span { display: block; width: 22px; height: 2px; background: var(--text, #111); border-radius: 2px; transition: transform .25s ease, opacity .2s ease; }
-    .nav-toggle.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-    .nav-toggle.open span:nth-child(2) { opacity: 0; }
-    .nav-toggle.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-    @media (max-width: 640px) {
-      .nav-toggle { display: flex; }
-      .nav-links { display: none; flex-direction: column; gap: 4px; position: absolute; top: 60px; left: 0; right: 0; background: var(--surface, #fff); border-bottom: 1px solid var(--border, #e5e7eb); padding: 12px 16px 16px; box-shadow: 0 8px 20px rgba(0,0,0,.08); animation: navSlide .2s ease; }
-      .nav-links.open { display: flex; }
-      @keyframes navSlide { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:none} }
-      .nav-links li a { padding: 10px 14px; font-size: .95rem; border-radius: 8px; }
-    }
+    /* Upload UI */
+    .drop-zone { border: 2px dashed var(--border); border-radius: var(--radius-md); padding: 40px 20px; text-align: center; cursor: pointer; transition: 0.2s; background: #fafafa; }
+    .drop-zone:hover { border-color: var(--primary); background: #f0f7ff; }
+    .drop-zone svg { width: 48px; height: 48px; color: var(--primary); margin-bottom: 12px; }
+    .file-list { margin-top: 20px; max-height: 200px; overflow-y: auto; border: 1px solid var(--border); border-radius: var(--radius-sm); display: none; }
+    .file-list.show { display: block; }
+    .v-file-item { padding: 10px 14px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+    .v-file-item:last-child { border-bottom: none; }
 
-    /* ── Content sections below the vault card ── */
-    .content-section { max-width: 820px; margin: 0 auto 48px; }
-    .content-section h2 { font-size: 1.5rem; margin-bottom: 16px; color: var(--text, #111); }
-    .content-section h3 { font-size: 1.15rem; margin: 24px 0 10px; color: var(--text, #111); }
-    .content-section p { font-size: .95rem; line-height: 1.75; color: var(--text-muted, #4b5563); margin-bottom: 14px; }
-    .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
-    .feature-card { background: var(--surface, #fff); border: 1px solid var(--border, #e5e7eb); border-radius: 10px; padding: 20px; }
-    .feature-card .icon { font-size: 1.8rem; margin-bottom: 10px; }
-    .feature-card h4 { font-size: .95rem; font-weight: 700; margin-bottom: 6px; color: var(--text, #111); }
-    .feature-card p { font-size: .85rem; color: var(--text-muted, #6b7280); margin: 0; line-height: 1.6; }
-    .steps-list { counter-reset: step; list-style: none; padding: 0; margin: 16px 0; }
-    .steps-list li { counter-increment: step; display: flex; gap: 14px; align-items: flex-start; padding: 14px 0; border-bottom: 1px solid var(--border, #e5e7eb); }
-    .steps-list li:last-child { border-bottom: none; }
-    .steps-list li::before { content: counter(step); min-width: 28px; height: 28px; background: var(--accent, #3b82f6); color: white; border-radius: 50%; display: grid; place-items: center; font-size: .8rem; font-weight: 700; flex-shrink: 0; margin-top: 2px; }
-    .steps-list li span { font-size: .92rem; color: var(--text-muted, #4b5563); line-height: 1.65; }
-    .faq-item { border-bottom: 1px solid var(--border, #e5e7eb); padding: 16px 0; }
-    .faq-item:last-child { border-bottom: none; }
-    .faq-q { font-weight: 600; font-size: .95rem; color: var(--text, #111); margin-bottom: 6px; cursor: pointer; display: flex; justify-content: space-between; align-items: center; }
-    .faq-a { font-size: .9rem; color: var(--text-muted, #4b5563); line-height: 1.7; display: none; padding-top: 4px; }
-    .faq-a.open { display: block; }
-    .tip-box { background: var(--accent-light, #eff6ff); border: 1px solid var(--accent, #3b82f6); border-radius: 8px; padding: 14px 18px; margin: 16px 0; font-size: .88rem; color: var(--text, #111); line-height: 1.65; }
-    .tip-box strong { color: var(--accent, #3b82f6); }
-    .divider { border: none; border-top: 1px solid var(--border, #e5e7eb); margin: 40px 0; }
+    /* Progress UI */
+    .v-progress { margin-top: 24px; display: none; }
+    .v-progress.show { display: block; }
+    .v-bar-bg { background: #e5e7eb; height: 10px; border-radius: 5px; overflow: hidden; margin-bottom: 8px; }
+    .v-bar-fill { background: var(--primary); width: 0%; height: 100%; transition: width 0.3s; }
+    .v-prog-info { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--text-light); }
+
+    /* Result UI */
+    .v-result { text-align: center; display: none; padding: 20px 0; }
+    .v-result.show { display: block; animation: scaleUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+    @keyframes scaleUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .v-code-box { font-size: 2.5rem; font-weight: 800; letter-spacing: 4px; color: var(--primary); margin: 20px 0; font-family: monospace; }
+
+    /* Retrieve UI */
+    .v-search-box { display: flex; gap: 10px; margin-bottom: 24px; }
+    .v-search-box input { flex: 1; font-size: 1.2rem; text-align: center; letter-spacing: 2px; font-weight: 600; }
+    .v-found-card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-md); padding: 24px; display: none; }
+    .v-found-info { margin-bottom: 20px; }
+    .v-found-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 4px; display: block; }
+    .v-found-meta { color: var(--text-light); font-size: 0.9rem; }
+    .v-msg { padding: 12px; border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 0.9rem; display: none; }
+
+    .vault-settings { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; text-align: left; }
+    .v-set-group label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 6px; color: var(--text-light); }
   </style>
 </head>
 <body>
 
-  <header class="site-header">
-    <div class="header-inner">
-      <a href="/" class="logo"><img src="logo.svg" alt="ShareMeWeb Logo" style="height:36px;width:auto;" /></a>
-      <nav aria-label="Main navigation">
-        <button class="nav-toggle" id="navToggle" aria-label="Toggle menu" onclick="toggleNav()">
-          <span></span><span></span><span></span>
-        </button>
-        <ul class="nav-links" id="nav-links">
-          <li><a href="/">Home</a></li>
-          <li><a href="cloud.html" class="active">Vault</a></li>
-          <li><a href="blog.html">Blog</a></li>
-          <li><a href="contact.html">Contact</a></li>
-        </ul>
+  <header class="navbar">
+    <div class="container nav-wrapper">
+      <a href="/" class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">ShareMeWeb <span class="text-primary">Vault</span></span>
+      </a>
+      <nav id="nav-links">
+        <a href="/">Home</a>
+        <a href="/tools">Tools</a>
+        <a href="/vault" class="active">Vault</a>
+        <a href="/about">About</a>
       </nav>
+      <button class="nav-toggle" id="navToggle" onclick="toggleNav()">
+        <span></span><span></span><span></span>
+      </button>
     </div>
   </header>
 
-  <main>
+  <main class="container">
     <section class="vault-hero">
-      <div class="container">
-        <div class="hero-badge">☁️ Cloud Storage • Parallel Turbo • 3GB Limit</div>
-        <h1>ShareMeWeb <span style="color:var(--accent)">Vault</span></h1>
-        <p>Upload files to secure cloud storage and share them with a unique 10-digit code.</p>
-
-        <div class="vault-card">
-          <div class="vault-tab-bar">
-            <button class="vault-tab active" onclick="vSwitchTab('upload', this)">📤 Upload File</button>
-            <button class="vault-tab" onclick="vSwitchTab('retrieve', this)">📥 Retrieve File</button>
-          </div>
-
-          <div class="vault-panel active" id="vPanelUpload">
-            <div id="vUploadForm">
-              <div class="v-drop" id="vDrop" onclick="document.getElementById('vFileInput').click()">
-                <span class="v-drop-ico">📦</span>
-                <h3>Drop files here or click to browse</h3>
-                <p>Max 3 GB total limit</p>
-              </div>
-              <input type="file" id="vFileInput" multiple />
-              <div class="v-file-list" id="vFileList"></div>
-              
-              <div class="v-opts">
-                <div class="v-opt">
-                  <span class="v-opt-label">⬇ Max Downloads</span>
-                  <input class="v-input" type="number" id="vMaxDl" placeholder="1" min="1" max="100" />
-                </div>
-                <div class="v-opt">
-                  <span class="v-opt-label">⏰ Auto-Expiry</span>
-                  <select class="v-input" id="vExpiry">
-                    <option value="1">1 hour</option>
-                    <option value="24" selected>24 hours</option>
-                    <option value="168">7 days</option>
-                  </select>
-                </div>
-                <div class="v-opt" style="grid-column: span 2;">
-                  <span class="v-opt-label">🔑 Password (Optional)</span>
-                  <input class="v-input" type="password" id="vPassword" placeholder="Enter password to secure file..." />
-                </div>
-              </div>
-
-              <div class="v-prog" id="vProg">
-                <div class="v-prog-row"><span id="vProgTxt">Uploading...</span><span id="vProgPct">0%</span></div>
-                <div class="v-prog-track"><div class="v-prog-fill" id="vProgFill"></div></div>
-              </div>
-              
-              <div class="v-alert v-alert-err" id="vUpErr"></div>
-              <button class="btn btn-primary btn-lg btn-block" id="vUpBtn" onclick="vDoUpload()" disabled style="margin-top:16px">☁️ Upload to Vault</button>
-            </div>
-
-            <div class="v-result" id="vResult">
-              <div style="text-align:center; padding: 20px;">
-                <div style="font-size:2.5rem;margin-bottom:8px">✅</div>
-                <h2>Upload Successful!</h2>
-                <div class="v-r-label">Your Access Code</div>
-                <div class="v-code-row">
-                  <div class="v-code-val" id="vGenCode">0000000000</div>
-                  <button class="v-btn-copy-code" id="vCpyBtn" onclick="vCopyCode()">Copy</button>
-                </div>
-                <button class="btn btn-secondary" onclick="location.reload()" style="width:100%">+ Upload More</button>
-              </div>
-            </div>
-          </div>
-
-          <div class="vault-panel" id="vPanelRetrieve">
-            <div class="v-search-row">
-              <input class="v-code-in" id="vCodeIn" type="text" placeholder="Enter 10-digit code" maxlength="10" oninput="vOnCodeType()" />
-              <button class="v-btn-search" id="vSrchBtn" onclick="vDoSearch()" disabled>Search →</button>
-            </div>
-
-            <!-- Password prompt (hidden until needed) -->
-            <div id="vPwRow" style="display:none; margin-top:12px;">
-              <input class="v-input" type="password" id="vPwIn" placeholder="🔑 Enter file password..." />
-              <button onclick="vConfirmPassword()" style="margin-top:8px; width:100%; padding:10px; background:var(--accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-weight:600;">Unlock File</button>
-            </div>
-
-            <!-- Status message -->
-            <div id="vRetrieveMsg" style="display:none; margin-top:12px; padding:10px 14px; border-radius:var(--radius-sm); font-size:.875rem;"></div>
-
-            <!-- File result (hidden until found) -->
-            <div id="vFileFound" style="display:none; margin-top:20px;">
-              <div style="padding:20px; border:1px solid var(--border); border-radius:var(--radius-sm); background:var(--surface-2);">
-                <div style="font-size:1.5rem; margin-bottom:8px;">📦</div>
-                <h3 id="vFoundName" style="margin:0 0 4px; font-size:1rem;"></h3>
-                <p id="vFoundSize" style="margin:0 0 16px; font-size:.85rem; color:var(--text-muted);"></p>
-                <div id="vFileButtons"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- ═══ EXTENDED CONTENT SECTION ═══ -->
-
-        <div class="content-section">
-          <h2>What is ShareMeWeb Vault?</h2>
-          <p>ShareMeWeb Vault is a powerful, browser-based cloud file storage and sharing platform designed for anyone who needs to send large files quickly and securely. Whether you are a freelancer sharing project deliverables with a client, a student submitting large assignments, a photographer sending high-resolution images, or a team member transferring critical work files — Vault makes the entire process effortless. No software installation is needed, no account registration is required, and there is absolutely no limit on the types of files you can share.</p>
-          <p>At the core of Vault is a simple but clever system: every file you upload is assigned a unique 10-digit access code. Share that code with anyone, and they can instantly retrieve your file from anywhere in the world. It is like giving someone a key to a secure digital locker — only the person who has the code can access the contents inside.</p>
-
-          <hr class="divider" />
-          <h2>Key Features</h2>
-          <div class="features-grid">
-            <div class="feature-card">
-              <div class="icon">🚀</div>
-              <h4>Turbo Parallel Uploads</h4>
-              <p>Files are split into 5 MB chunks and uploaded simultaneously across 3 parallel streams, giving you the fastest possible transfer speeds regardless of file size.</p>
-            </div>
-            <div class="feature-card">
-              <div class="icon">🔑</div>
-              <h4>Password Protection</h4>
-              <p>Add an optional password to any upload. Only recipients who know both the 10-digit code and your chosen password can access the file.</p>
-            </div>
-            <div class="feature-card">
-              <div class="icon">⏰</div>
-              <h4>Auto-Expiry Control</h4>
-              <p>Set files to automatically delete after 1 hour, 24 hours, or 7 days. Your data never lingers on the cloud longer than it needs to.</p>
-            </div>
-            <div class="feature-card">
-              <div class="icon">⬇️</div>
-              <h4>Download Limit</h4>
-              <p>Restrict how many times a file can be downloaded before the link is automatically disabled — perfect for one-time secure transfers.</p>
-            </div>
-            <div class="feature-card">
-              <div class="icon">📦</div>
-              <h4>Up to 3 GB Per Upload</h4>
-              <p>Upload videos, zip archives, design files, RAW photos, and more. Our generous 3 GB limit handles almost any real-world file sharing need.</p>
-            </div>
-            <div class="feature-card">
-              <div class="icon">🌐</div>
-              <h4>No Account Needed</h4>
-              <p>Jump straight in — upload and share without signing up. Your file is ready to share in seconds, not minutes.</p>
-            </div>
-          </div>
-
-          <hr class="divider" />
-          <h2>How to Upload a File</h2>
-          <p>Uploading a file to ShareMeWeb Vault takes less than a minute. Follow these simple steps to get your file into the cloud and ready to share:</p>
-          <ul class="steps-list">
-            <li><span><strong>Select your files.</strong> Click the upload area above or drag and drop files directly onto it. You can select multiple files at once. The total size must not exceed 3 GB.</span></li>
-            <li><span><strong>Set your download limit.</strong> Enter the maximum number of times the file can be downloaded. Once this limit is reached, the link is automatically disabled for security.</span></li>
-            <li><span><strong>Choose an expiry time.</strong> Pick how long your file should remain available — 1 hour for quick transfers, 24 hours for same-day sharing, or 7 days for extended access.</span></li>
-            <li><span><strong>Add a password (optional).</strong> For extra security, type a password that recipients will need to enter before downloading. Share the password with your recipient through a separate channel for best security practice.</span></li>
-            <li><span><strong>Click "Upload to Vault".</strong> Our turbo engine splits the file into chunks and uploads them in parallel. A live progress bar tracks the upload in real time.</span></li>
-            <li><span><strong>Copy your 10-digit access code.</strong> Once the upload is complete, you will see a unique 10-digit code. Share this code with anyone you want to give access to your file.</span></li>
-          </ul>
-
-          <hr class="divider" />
-          <h2>How to Download a File</h2>
-          <p>Retrieving a file from ShareMeWeb Vault is just as easy. If someone has shared a 10-digit code with you, here is how to get the file:</p>
-          <ul class="steps-list">
-            <li><span>Click the <strong>"Retrieve File"</strong> tab at the top of the Vault panel above.</span></li>
-            <li><span>Type or paste the <strong>10-digit access code</strong> into the input field.</span></li>
-            <li><span>Click the <strong>Search</strong> button. The file details — including the name and size — will appear instantly.</span></li>
-            <li><span>If the file is password-protected, enter the password provided by the sender.</span></li>
-            <li><span>Click <strong>"Download File"</strong> to save the file directly to your device.</span></li>
-          </ul>
-
-          <div class="tip-box">
-            <strong>💡 Pro Tip:</strong> Always double-check the 10-digit code when entering it. Codes are case-sensitive numeric strings — a single wrong digit will return "file not found". Ask the sender to copy the code directly from their success screen to avoid transcription errors.
-          </div>
-
-          <hr class="divider" />
-          <h2>Who Is ShareMeWeb Vault For?</h2>
-          <p>Vault was designed with versatility in mind. It is built for everyone from individual users to small teams who need fast, no-fuss file sharing without the overhead of enterprise solutions.</p>
-          <h3>Freelancers &amp; Creative Professionals</h3>
-          <p>Graphic designers, video editors, and photographers often deal with files that are too large for email attachments. Vault lets you deliver final project files, raw footage, or print-ready artwork to clients in seconds. Set the download limit to 1 so that only your client can access the delivery — and the link disables itself after download, keeping your work protected.</p>
-          <h3>Students &amp; Educators</h3>
-          <p>Students can submit large projects, presentations, or research datasets without worrying about email size restrictions. Teachers and lecturers can distribute course materials, lecture recordings, or large reference documents with a simple code that expires after the required access period.</p>
-          <h3>Remote &amp; Distributed Teams</h3>
-          <p>Need to quickly hand off a build package, a design mockup, or a database export to a colleague? Vault gives you a fast, temporary staging area for file handoffs that does not clog up your cloud storage or project management tools.</p>
-          <h3>Personal Use</h3>
-          <p>Moving files between your own devices? Sharing vacation photos or a video with family? Vault is a quick, ad-free-experience alternative to consumer cloud drives — no login, no album creation, no fuss. Just upload, share the code, and download on the other side.</p>
-
-          <hr class="divider" />
-          <h2>Frequently Asked Questions</h2>
-          <div class="faq-item">
-            <div class="faq-q" onclick="toggleFaq(this)">What is the maximum file size I can upload? <span>＋</span></div>
-            <div class="faq-a">You can upload up to 3 GB total per session. This means you can upload a single 3 GB file, or multiple smaller files that together do not exceed the 3 GB limit.</div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-q" onclick="toggleFaq(this)">Do I need to create an account? <span>＋</span></div>
-            <div class="faq-a">No. ShareMeWeb Vault is completely account-free. Just open the page, drop your file, and upload. No registration, no email verification, no personal data required.</div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-q" onclick="toggleFaq(this)">How long are files stored? <span>＋</span></div>
-            <div class="faq-a">Files are stored according to the expiry time you choose at upload: 1 hour, 24 hours, or 7 days. After that, the file and its metadata are automatically and permanently deleted from our servers.</div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-q" onclick="toggleFaq(this)">What file types are supported? <span>＋</span></div>
-            <div class="faq-a">All file types are supported — documents, images, videos, audio files, zip archives, executables, design files, code packages, and anything else. There are no restrictions on file type.</div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-q" onclick="toggleFaq(this)">Can I upload multiple files at once? <span>＋</span></div>
-            <div class="faq-a">Yes. You can select and upload multiple files at once. They will all be stored under the same 10-digit access code, so the recipient gets all files with a single code.</div>
-          </div>
-          <div class="faq-item">
-            <div class="faq-q" onclick="toggleFaq(this)">Is my upload private? <span>＋</span></div>
-            <div class="faq-a">Your file is accessible only to people who have your 10-digit code. With the optional password feature enabled, they also need the password. Files are not publicly indexed or searchable. Only someone with your specific code can find or download your file.</div>
-          </div>
-        </div>
-        <!-- ═══ END EXTENDED CONTENT ═══ -->
-
-      </div>
+      <h1>Secure Cloud Storage</h1>
+      <p>Upload files to our high-speed private cloud and share them with a simple 10-digit code. No account required.</p>
     </section>
+
+    <div class="vault-card">
+      <div class="vault-tabs">
+        <button class="vault-tab active" onclick="vSwitchTab('upload', this)">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+          Send Files
+        </button>
+        <button class="vault-tab" onclick="vSwitchTab('retrieve', this)">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l4 4m-4-4h12"></path></svg>
+          Receive Files
+        </button>
+      </div>
+
+      <div class="vault-content">
+        <div id="vPanelUpload" class="vault-panel active">
+          <div id="vUploadForm">
+            <div class="drop-zone" onclick="document.getElementById('vFileInput').click()">
+              <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+              <h3>Click or Drag Files Here</h3>
+              <p>Support for any file type up to 3GB</p>
+              <input type="file" id="vFileInput" hidden multiple />
+            </div>
+
+            <div id="vFileList" class="file-list"></div>
+
+            <div class="vault-settings">
+              <div class="v-set-group">
+                <label>Code Expiry</label>
+                <select id="vExpiry" class="form-control">
+                  <option value="1">1 Hour</option>
+                  <option value="24" selected>24 Hours</option>
+                  <option value="168">7 Days</option>
+                </select>
+              </div>
+              <div class="v-set-group">
+                <label>Security Password (Optional)</label>
+                <input type="text" id="vPassword" placeholder="e.g. 1234" class="form-control" />
+              </div>
+            </div>
+
+            <button id="vUpBtn" class="btn btn-primary btn-lg" style="width:100%" onclick="vDoUpload()" disabled>
+              Upload to Turbo Vault
+            </button>
+          </div>
+
+          <div id="vProg" class="v-progress">
+            <div class="v-bar-bg"><div id="vProgFill" class="v-bar-fill"></div></div>
+            <div class="v-prog-info">
+              <span id="vProgTxt">Initializing...</span>
+              <span id="vProgPct">0%</span>
+            </div>
+          </div>
+
+          <div id="vResult" class="v-result">
+            <div style="font-size: 3rem; margin-bottom: 10px;">✅</div>
+            <h2>Upload Complete!</h2>
+            <p>Share this 10-digit code to download the files:</p>
+            <div id="vGenCode" class="v-code-box">000 000 0000</div>
+            <button class="btn btn-secondary" onclick="vCopyCode()">Copy Code</button>
+            <button class="btn btn-outline" style="margin-left:8px" onclick="location.reload()">Upload More</button>
+          </div>
+        </div>
+
+        <div id="vPanelRetrieve" class="vault-panel">
+          <h3>Enter 10-Digit Code</h3>
+          <p>Retrieve files shared with you by entering the unique vault code.</p>
+          
+          <div class="v-search-box">
+            <input type="text" id="vCodeIn" placeholder="0000000000" maxlength="10" oninput="vOnCodeType()" class="form-control" />
+            <button id="vSrchBtn" class="btn btn-primary" onclick="vDoSearch()" disabled>Search →</button>
+          </div>
+
+          <div id="vRetrieveMsg" class="v-msg"></div>
+
+          <div id="vFileFound" class="v-found-card">
+            <div class="v-found-info">
+              <span id="vFoundName" class="v-found-name">Filename.zip</span>
+              <span id="vFoundSize" class="v-found-meta">0.00 MB</span>
+            </div>
+            <div id="vFileButtons"></div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
-
   <script>
-  // ═══════════════════════════════════════════════════════
-  //  STORJ TURBO CONFIG
-  // ═══════════════════════════════════════════════════════
-  const STORJ_CONFIG = {
-    accessKey: 'juut67lhh2shmo63mxdx5c44xuya',
-    secretKey: 'j3uiryu2g25pi5rgt34lgwlwvfo5ptskp3cmv7nqngm655pflxm6w',
-    bucket: 'sharemeweb-vault23',
-    endpoint: 'https://gateway.ap1.storjshare.io',
-    region: 'ap1',
-    cdnBase: 'https://files.sharemeweb.com',
-  }
-
-  const STORJ_MAX_BYTES = 3 * 1024 * 1024 * 1024;
-  const CHUNK_SIZE = 5 * 1024 * 1024;
-  const CONCURRENCY = 3;
-
-  const DBS = [{ url: 'https://zptxcmommymnzlzlzaht.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdHhjbW9tbXltbnpsemx6YWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODE2NzEsImV4cCI6MjA4ODk1NzY3MX0.Z7XmGV8D0eliKan7oNasipcqpvAz7Pk_9J08AZB7O0Y' }];
-  const sbClient = window.supabase.createClient(DBS[0].url, DBS[0].key);
-
-  let vPickedFiles = [], vCurCode = null, vRetRecord = null;
-
-  async function _hmac(key, data) {
-    const k = typeof key === 'string' ? new TextEncoder().encode(key) : key;
-    const ck = await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    return new Uint8Array(await crypto.subtle.sign('HMAC', ck, new TextEncoder().encode(data)));
-  }
-  async function _sha256hex(data) {
-    const buf = data instanceof ArrayBuffer ? data : (data instanceof Uint8Array ? data.buffer : new TextEncoder().encode(data).buffer);
-    const h = await crypto.subtle.digest('SHA-256', buf);
-    return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-  function _hex(buf) { return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join(''); }
-
-  async function getV4Auth(method, path, query, amzDate, dateStamp, payloadHash) {
-    const { accessKey, secretKey, endpoint, region } = STORJ_CONFIG;
-    const host = new URL(endpoint).host;
-    const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
-    const canonicalRequest = [method, path, query, `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`, signedHeaders, payloadHash].join('\n');
-    const scope = `${dateStamp}/${region}/s3/aws4_request`;
-    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, scope, await _sha256hex(canonicalRequest)].join('\n');
-    const kDate = await _hmac('AWS4' + secretKey, dateStamp);
-    const kRegion = await _hmac(kDate, region);
-    const kService = await _hmac(kRegion, 's3');
-    const kSign = await _hmac(kService, 'aws4_request');
-    const sig = _hex(await _hmac(kSign, stringToSign));
-    return `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`;
-  }
-
-  async function storjUploadMultipart(file, s3Key, onProgress) {
-    const { bucket, endpoint } = STORJ_CONFIG;
-    const initUrl = `${endpoint}/${bucket}/${s3Key}?uploads`;
-    const amzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-    const dateStamp = amzDate.slice(0, 8);
-    const authInit = await getV4Auth('POST', `/${bucket}/${s3Key}`, 'uploads=', amzDate, dateStamp, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
-    
-    const initResp = await fetch(initUrl, { method: 'POST', headers: { 'x-amz-date': amzDate, 'Authorization': authInit, 'x-amz-content-sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' } });
-    const initXml = await initResp.text();
-    const uploadId = initXml.match(/<UploadId>(.*?)<\/UploadId>/)[1];
-
-    const numParts = Math.ceil(file.size / CHUNK_SIZE);
-    const completedParts = [];
-    let uploadedBytes = 0;
-    const queue = Array.from({ length: numParts }, (_, i) => i + 1);
-
-    const uploadNext = async () => {
-      while (queue.length > 0) {
-        const partNum = queue.shift();
-        const start = (partNum - 1) * CHUNK_SIZE;
-        const end = Math.min(start + CHUNK_SIZE, file.size);
-        const chunk = file.slice(start, end);
-        const buf = await chunk.arrayBuffer();
-        const hash = await _sha256hex(buf);
-        const pAmzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-        const pAuth = await getV4Auth('PUT', `/${bucket}/${s3Key}`, `partNumber=${partNum}&uploadId=${uploadId}`, pAmzDate, pAmzDate.slice(0,8), hash);
-
-        const res = await fetch(`${endpoint}/${bucket}/${s3Key}?partNumber=${partNum}&uploadId=${uploadId}`, { method: 'PUT', headers: { 'x-amz-date': pAmzDate, 'Authorization': pAuth, 'x-amz-content-sha256': hash }, body: buf });
-        completedParts.push({ PartNumber: partNum, ETag: res.headers.get('ETag') });
-        uploadedBytes += chunk.size;
-        onProgress(uploadedBytes);
-      }
-    };
-
-    await Promise.all(Array.from({ length: CONCURRENCY }, uploadNext));
-
-    completedParts.sort((a,b) => a.PartNumber - b.PartNumber);
-    let xml = '<CompleteMultipartUpload>' + completedParts.map(p => `<Part><PartNumber>${p.PartNumber}</PartNumber><ETag>${p.ETag}</ETag></Part>`).join('') + '</CompleteMultipartUpload>';
-    const fAmzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
-    const fHash = await _sha256hex(xml);
-    const fAuth = await getV4Auth('POST', `/${bucket}/${s3Key}`, `uploadId=${uploadId}`, fAmzDate, fAmzDate.slice(0,8), fHash);
-    await fetch(`${endpoint}/${bucket}/${s3Key}?uploadId=${uploadId}`, { method: 'POST', headers: { 'x-amz-date': fAmzDate, 'Authorization': fAuth, 'x-amz-content-sha256': fHash }, body: xml });
-
-    return `${STORJ_CONFIG.cdnBase}/${s3Key}`;
-  }
-
-  // ── Fixed tab switcher (no longer relies on `event`) ──
-  function vSwitchTab(t, btn) {
-    document.getElementById('vPanelUpload').classList.toggle('active', t === 'upload');
-    document.getElementById('vPanelRetrieve').classList.toggle('active', t === 'retrieve');
-    document.querySelectorAll('.vault-tab').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-
-  document.getElementById('vFileInput').addEventListener('change', e => {
-    vPickedFiles = Array.from(e.target.files);
-    const list = document.getElementById('vFileList');
-    list.innerHTML = vPickedFiles.map(f => `<div class="v-file-item"><b>${f.name}</b> (${(f.size/1024/1024).toFixed(2)} MB)</div>`).join('');
-    document.getElementById('vUpBtn').disabled = vPickedFiles.length === 0;
-  });
-
-  async function vDoUpload() {
-    const btn = document.getElementById('vUpBtn');
-    const fill = document.getElementById('vProgFill');
-    const pct = document.getElementById('vProgPct');
-    const ptxt = document.getElementById('vProgTxt');
-    
-    btn.disabled = true;
-    document.getElementById('vProg').classList.add('show');
-    
-    try {
-      const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
-      const totalBytes = vPickedFiles.reduce((s,f) => s+f.size, 0);
-      if(totalBytes > STORJ_MAX_BYTES) throw new Error("Exceeds 3GB limit");
-
-      const urls = [];
-      for(let f of vPickedFiles) {
-        ptxt.textContent = `Turbo Uploading: ${f.name}`;
-        const key = `${code}/${f.name.replace(/[^a-z0-9.]/gi, '_')}`;
-        const url = await storjUploadMultipart(f, key, (bytes) => {
-            const p = Math.round((bytes/f.size)*100);
-            fill.style.width = p + '%';
-            pct.textContent = p + '%';
-        });
-        urls.push({name: f.name, url: url, size: f.size, type: f.type});
-      }
-
-      await sbClient.from('files').insert([{
-        code, filename: urls[0].name, file_url: urls[0].url, all_files: JSON.stringify(urls),
-        filesize: totalBytes, filetype: urls[0].type, max_downloads: parseInt(document.getElementById('vMaxDl').value)||1,
-        password: document.getElementById('vPassword').value || null,
-        expires_at: new Date(Date.now() + parseInt(document.getElementById('vExpiry').value)*3600000).toISOString()
-      }]);
-
-      vCurCode = code;
-      document.getElementById('vGenCode').textContent = code;
-      document.getElementById('vUploadForm').style.display = 'none';
-      document.getElementById('vResult').classList.add('show');
-    } catch(err) {
-      alert(err.message);
-      btn.disabled = false;
+    // ═══════════════════════════════════════════════════════
+    //  STORJ CONFIG - NO SUPABASE NEEDED
+    // ═══════════════════════════════════════════════════════
+    const STORJ_CONFIG = {
+      accessKey: 'juut67lhh2shmo63mxdx5c44xuya',
+      secretKey: 'j3uiryu2g25pi5rgt34lgwlwvfo5ptskp3cmv7nqngm655pflxm6w',
+      bucket: 'sharemeweb-vault23',
+      endpoint: 'https://gateway.ap1.storjshare.io',
+      region: 'ap1',
+      cdnBase: 'https://files.sharemeweb.com', // Cloudflare Worker Endpoint
     }
-  }
 
-  function vOnCodeType() {
-    document.getElementById('vSrchBtn').disabled = document.getElementById('vCodeIn').value.length !== 10;
-    // reset UI on new input
-    document.getElementById('vFileFound').style.display = 'none';
-    document.getElementById('vPwRow').style.display = 'none';
-    vShowMsg('', '');
-  }
+    const CHUNK_SIZE = 5 * 1024 * 1024;
+    const CONCURRENCY = 3;
+    let vPickedFiles = [], vCurCode = null;
 
-  function vShowMsg(text, type) {
-    const el = document.getElementById('vRetrieveMsg');
-    if (!text) { el.style.display = 'none'; return; }
-    el.style.display = 'block';
-    el.style.background = type === 'err' ? '#fef2f2' : '#f0fdf4';
-    el.style.border    = type === 'err' ? '1px solid #fecaca' : '1px solid #86efac';
-    el.style.color     = type === 'err' ? '#dc2626' : '#166534';
-    el.textContent = text;
-  }
+    // --- CRYPTO HELPERS ---
+    async function _hmac(key, data) {
+      const k = typeof key === 'string' ? new TextEncoder().encode(key) : key;
+      const ck = await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+      return new Uint8Array(await crypto.subtle.sign('HMAC', ck, new TextEncoder().encode(data)));
+    }
+    async function _sha256hex(data) {
+      const buf = data instanceof ArrayBuffer ? data : (data instanceof Uint8Array ? data.buffer : new TextEncoder().encode(data).buffer);
+      const h = await crypto.subtle.digest('SHA-256', buf);
+      return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+    function _hex(buf) { return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join(''); }
 
-  async function vDoSearch() {
-    const btn = document.getElementById('vSrchBtn');
-    btn.disabled = true;
-    btn.textContent = 'Searching…';
-    vShowMsg('', '');
-    document.getElementById('vFileFound').style.display = 'none';
-    document.getElementById('vPwRow').style.display = 'none';
+    // --- S3 V4 AUTH ---
+    async function getV4Auth(method, path, query, amzDate, dateStamp, payloadHash) {
+      const { accessKey, secretKey, endpoint, region } = STORJ_CONFIG;
+      const host = new URL(endpoint).host;
+      const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+      const canonicalRequest = [method, path, query, `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`, signedHeaders, payloadHash].join('\n');
+      const scope = `${dateStamp}/${region}/s3/aws4_request`;
+      const stringToSign = ['AWS4-HMAC-SHA256', amzDate, scope, await _sha256hex(canonicalRequest)].join('\n');
+      const kDate = await _hmac('AWS4' + secretKey, dateStamp);
+      const kRegion = await _hmac(kDate, region);
+      const kService = await _hmac(kRegion, 's3');
+      const kSign = await _hmac(kService, 'aws4_request');
+      const sig = _hex(await _hmac(kSign, stringToSign));
+      return `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`;
+    }
 
-    try {
+    // --- UPLOAD LOGIC ---
+    async function storjUploadMultipart(file, s3Key, onProgress) {
+      const { bucket, endpoint } = STORJ_CONFIG;
+      const initUrl = `${endpoint}/${bucket}/${s3Key}?uploads`;
+      const amzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+      const dateStamp = amzDate.slice(0, 8);
+      const authInit = await getV4Auth('POST', `/${bucket}/${s3Key}`, 'uploads=', amzDate, dateStamp, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+      
+      const initResp = await fetch(initUrl, { method: 'POST', headers: { 'x-amz-date': amzDate, 'Authorization': authInit, 'x-amz-content-sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' } });
+      const initXml = await initResp.text();
+      const uploadId = initXml.match(/<UploadId>(.*?)<\/UploadId>/)[1];
+
+      const numParts = Math.ceil(file.size / CHUNK_SIZE);
+      const completedParts = [];
+      let uploadedBytes = 0;
+      const queue = Array.from({ length: numParts }, (_, i) => i + 1);
+
+      const uploadNext = async () => {
+        while (queue.length > 0) {
+          const partNum = queue.shift();
+          const start = (partNum - 1) * CHUNK_SIZE;
+          const end = Math.min(start + CHUNK_SIZE, file.size);
+          const chunk = file.slice(start, end);
+          const buf = await chunk.arrayBuffer();
+          const hash = await _sha256hex(buf);
+          const pAmzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+          const pAuth = await getV4Auth('PUT', `/${bucket}/${s3Key}`, `partNumber=${partNum}&uploadId=${uploadId}`, pAmzDate, pAmzDate.slice(0,8), hash);
+
+          const res = await fetch(`${endpoint}/${bucket}/${s3Key}?partNumber=${partNum}&uploadId=${uploadId}`, { method: 'PUT', headers: { 'x-amz-date': pAmzDate, 'Authorization': pAuth, 'x-amz-content-sha256': hash }, body: buf });
+          completedParts.push({ PartNumber: partNum, ETag: res.headers.get('ETag') });
+          uploadedBytes += chunk.size;
+          onProgress(uploadedBytes);
+        }
+      };
+
+      await Promise.all(Array.from({ length: CONCURRENCY }, uploadNext));
+
+      completedParts.sort((a,b) => a.PartNumber - b.PartNumber);
+      let xml = '<CompleteMultipartUpload>' + completedParts.map(p => `<Part><PartNumber>${p.PartNumber}</PartNumber><ETag>${p.ETag}</ETag></Part>`).join('') + '</CompleteMultipartUpload>';
+      const fAmzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+      const fHash = await _sha256hex(xml);
+      const fAuth = await getV4Auth('POST', `/${bucket}/${s3Key}`, `uploadId=${uploadId}`, fAmzDate, fAmzDate.slice(0,8), fHash);
+      await fetch(`${endpoint}/${bucket}/${s3Key}?uploadId=${uploadId}`, { method: 'POST', headers: { 'x-amz-date': fAmzDate, 'Authorization': fAuth, 'x-amz-content-sha256': fHash }, body: xml });
+
+      return `${STORJ_CONFIG.cdnBase}/${s3Key}`;
+    }
+
+    // --- MAIN ACTIONS ---
+    document.getElementById('vFileInput').addEventListener('change', e => {
+      vPickedFiles = Array.from(e.target.files);
+      const list = document.getElementById('vFileList');
+      list.innerHTML = vPickedFiles.map(f => `<div class="v-file-item"><b>${f.name}</b> (${(f.size/1024/1024).toFixed(2)} MB)</div>`).join('');
+      list.classList.toggle('show', vPickedFiles.length > 0);
+      document.getElementById('vUpBtn').disabled = vPickedFiles.length === 0;
+    });
+
+    async function vDoUpload() {
+      const btn = document.getElementById('vUpBtn');
+      const ptxt = document.getElementById('vProgTxt');
+      btn.disabled = true;
+      document.getElementById('vProg').classList.add('show');
+      
+      try {
+        const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+        for(let f of vPickedFiles) {
+          ptxt.textContent = `Uploading: ${f.name}`;
+          // Code acts as folder prefix
+          const s3Key = `${code}/${f.name.replace(/[^a-z0-9.]/gi, '_')}`;
+          await storjUploadMultipart(f, s3Key, (bytes) => {
+              const p = Math.round((bytes/f.size)*100);
+              document.getElementById('vProgFill').style.width = p + '%';
+              document.getElementById('vProgPct').textContent = p + '%';
+          });
+        }
+        vCurCode = code;
+        document.getElementById('vGenCode').textContent = code;
+        document.getElementById('vUploadForm').style.display = 'none';
+        document.getElementById('vResult').classList.add('show');
+      } catch(err) {
+        alert("Upload Failed: " + err.message);
+        btn.disabled = false;
+      }
+    }
+
+    // --- SEARCH / RECEIVE LOGIC ---
+    async function vDoSearch() {
+      const btn = document.getElementById('vSrchBtn');
       const code = document.getElementById('vCodeIn').value.trim();
-      const { data, error } = await sbClient.from('files').select('*').eq('code', code).maybeSingle();
+      const { bucket, endpoint } = STORJ_CONFIG;
 
-      if (error) throw new Error('Database error: ' + error.message);
+      btn.disabled = true;
+      btn.textContent = 'Searching...';
+      vShowMsg('', '');
+      document.getElementById('vFileFound').style.display = 'none';
 
-      if (!data) {
-        vShowMsg('❌ No file found with that code. Please check and try again.', 'err');
-        return;
+      try {
+        const amzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+        const dateStamp = amzDate.slice(0, 8);
+        // Search by listing objects starting with the 10-digit code
+        const query = `list-type=2&prefix=${code}/`; 
+        const auth = await getV4Auth('GET', `/${bucket}`, query, amzDate, dateStamp, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+
+        const res = await fetch(`${endpoint}/${bucket}?${query}`, {
+          headers: { 'x-amz-date': amzDate, 'Authorization': auth, 'x-amz-content-sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' }
+        });
+
+        const xml = await res.text();
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(xml, "text/xml");
+        const contents = xmlDoc.getElementsByTagName("Contents");
+
+        if (contents.length === 0) {
+          vShowMsg('❌ No files found for this code.', 'err');
+          return;
+        }
+
+        const btnWrap = document.getElementById('vFileButtons');
+        btnWrap.innerHTML = '';
+        let totalSize = 0;
+
+        for (let i = 0; i < contents.length; i++) {
+          const key = contents[i].getElementsByTagName("Key")[0].textContent;
+          const size = parseInt(contents[i].getElementsByTagName("Size")[0].textContent);
+          const fileName = key.split('/').pop();
+          totalSize += size;
+
+          const b = document.createElement('button');
+          b.className = 'btn btn-primary';
+          b.style = 'width:100%; margin-bottom:10px; text-align:left; font-size: 0.95rem;';
+          b.innerHTML = `⬇️ <b>Download</b> ${fileName}`;
+          b.onclick = () => window.open(`${STORJ_CONFIG.cdnBase}/${key}`, '_blank');
+          btnWrap.appendChild(b);
+        }
+
+        document.getElementById('vFoundName').textContent = "Vault Found: " + code;
+        document.getElementById('vFoundSize').textContent = `${(totalSize/1024/1024).toFixed(2)} MB Total`;
+        document.getElementById('vFileFound').style.display = 'block';
+
+      } catch(err) {
+        vShowMsg('Search Error. Please try again.', 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Search →';
       }
-
-      // Check expiry
-      if (data.expires_at && new Date(data.expires_at) < new Date()) {
-        vShowMsg('⏰ This file has expired and is no longer available.', 'err');
-        return;
-      }
-
-      // Check download limit
-      const dlCount = data.download_count || 0;
-      const maxDl   = data.max_downloads  || 1;
-      if (dlCount >= maxDl) {
-        vShowMsg('⛔ This file has reached its maximum number of downloads.', 'err');
-        return;
-      }
-
-      vRetRecord = data;
-
-      // Password protected?
-      if (data.password) {
-        document.getElementById('vPwRow').style.display = 'block';
-        document.getElementById('vPwIn').value = '';
-        vShowMsg('🔑 This file is password protected. Enter the password to continue.', 'ok');
-        return;
-      }
-
-      vShowFile();
-    } catch(err) {
-      vShowMsg('❌ ' + err.message, 'err');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Search →';
     }
-  }
 
-  function vConfirmPassword() {
-    const entered = document.getElementById('vPwIn').value;
-    if (!entered) { vShowMsg('Please enter the password.', 'err'); return; }
-    if (entered !== vRetRecord.password) {
-      vShowMsg('❌ Incorrect password. Please try again.', 'err');
-      return;
+    function vShowMsg(text, type) {
+      const el = document.getElementById('vRetrieveMsg');
+      if (!text) { el.style.display = 'none'; return; }
+      el.style.display = 'block';
+      el.style.background = type === 'err' ? '#fef2f2' : '#f0fdf4';
+      el.style.color = type === 'err' ? '#991b1b' : '#166534';
+      el.textContent = text;
     }
-    document.getElementById('vPwRow').style.display = 'none';
-    vShowMsg('', '');
-    vShowFile();
-  }
 
-  function vShowFile() {
-    const data = vRetRecord;
-    document.getElementById('vFoundName').textContent = data.filename;
+    function vSwitchTab(t, btn) {
+      document.getElementById('vPanelUpload').classList.toggle('active', t === 'upload');
+      document.getElementById('vPanelRetrieve').classList.toggle('active', t === 'retrieve');
+      document.querySelectorAll('.vault-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
 
-    const sizeMB = (data.filesize / 1024 / 1024).toFixed(2);
-    const dlLeft = (data.max_downloads || 1) - (data.download_count || 0);
-    document.getElementById('vFoundSize').textContent = sizeMB + ' MB  ·  ' + dlLeft + ' download(s) remaining';
+    function vOnCodeType() {
+      document.getElementById('vSrchBtn').disabled = document.getElementById('vCodeIn').value.length !== 10;
+    }
 
-    // Build download buttons — support multi-file via all_files
-    const btnWrap = document.getElementById('vFileButtons');
-    btnWrap.innerHTML = '';
+    function vCopyCode() {
+      navigator.clipboard.writeText(vCurCode);
+      alert("Code copied!");
+    }
 
-    let files = [];
-    try { files = JSON.parse(data.all_files || '[]'); } catch(e) {}
-    if (!files.length) files = [{ name: data.filename, url: data.file_url }];
-
-    files.forEach(f => {
-      const b = document.createElement('button');
-      b.textContent = '⬇️ Download ' + f.name;
-      b.style = 'display:block; width:100%; margin-bottom:8px; padding:12px; background:var(--accent); color:white; border:none; border-radius:var(--radius-sm); cursor:pointer; font-weight:600; font-size:.9rem; text-align:left;';
-      b.onclick = () => vDoDownload(f.url);
-      btnWrap.appendChild(b);
-    });
-
-    document.getElementById('vFileFound').style.display = 'block';
-  }
-
-  async function vDoDownload(url) {
-    // Increment download count in Supabase
-    try {
-      const newCount = (vRetRecord.download_count || 0) + 1;
-      await sbClient.from('files').update({ download_count: newCount }).eq('code', vRetRecord.code);
-      vRetRecord.download_count = newCount;
-      // Update remaining count label
-      const dlLeft = (vRetRecord.max_downloads || 1) - newCount;
-      document.getElementById('vFoundSize').textContent =
-        (vRetRecord.filesize / 1024 / 1024).toFixed(2) + ' MB  ·  ' + dlLeft + ' download(s) remaining';
-    } catch(e) { /* non-blocking */ }
-
-    window.open(url, '_blank');
-  }
-
-  function vCopyCode() {
-    navigator.clipboard.writeText(vCurCode);
-    alert("Code copied!");
-  }
-
-  function toggleFaq(el) {
-    const ans = el.nextElementSibling;
-    const icon = el.querySelector('span');
-    const open = ans.classList.toggle('open');
-    icon.textContent = open ? '－' : '＋';
-  }
-
-  function toggleNav() {
-    const toggle = document.getElementById('navToggle');
-    const links = document.getElementById('nav-links');
-    toggle.classList.toggle('open');
-    links.classList.toggle('open');
-  }
-
-  // Close nav when a link is clicked on mobile
-  document.querySelectorAll('#nav-links a').forEach(a => {
-    a.addEventListener('click', () => {
-      document.getElementById('navToggle').classList.remove('open');
-      document.getElementById('nav-links').classList.remove('open');
-    });
-  });
+    function toggleNav() {
+      const toggle = document.getElementById('navToggle');
+      const links = document.getElementById('nav-links');
+      toggle.classList.toggle('open');
+      links.classList.toggle('open');
+    }
   </script>
 </body>
 </html>
