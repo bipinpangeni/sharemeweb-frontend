@@ -253,4 +253,241 @@
           </ul>
 
           <div class="tip-box">
-            <strong>💡 Pro Tip:</strong> Always double-check the 10-digit code when entering it. Codes are case-sensitive numeric strings — a single wrong digit will return "file not found". Ask the sender to copy the code directly fr
+            <strong>💡 Pro Tip:</strong> Always double-check the 10-digit code when entering it. Codes are case-sensitive numeric strings — a single wrong digit will return "file not found". Ask the sender to copy the code directly from their success screen to avoid transcription errors.
+          </div>
+
+          <hr class="divider" />
+          <h2>Who Is ShareMeWeb Vault For?</h2>
+          <p>Vault was designed with versatility in mind. It is built for everyone from individual users to small teams who need fast, no-fuss file sharing without the overhead of enterprise solutions.</p>
+          <h3>Freelancers &amp; Creative Professionals</h3>
+          <p>Graphic designers, video editors, and photographers often deal with files that are too large for email attachments. Vault lets you deliver final project files, raw footage, or print-ready artwork to clients in seconds. Set the download limit to 1 so that only your client can access the delivery — and the link disables itself after download, keeping your work protected.</p>
+          <h3>Students &amp; Educators</h3>
+          <p>Students can submit large projects, presentations, or research datasets without worrying about email size restrictions. Teachers and lecturers can distribute course materials, lecture recordings, or large reference documents with a simple code that expires after the required access period.</p>
+          <h3>Remote &amp; Distributed Teams</h3>
+          <p>Need to quickly hand off a build package, a design mockup, or a database export to a colleague? Vault gives you a fast, temporary staging area for file handoffs that does not clog up your cloud storage or project management tools.</p>
+          <h3>Personal Use</h3>
+          <p>Moving files between your own devices? Sharing vacation photos or a video with family? Vault is a quick, ad-free-experience alternative to consumer cloud drives — no login, no album creation, no fuss. Just upload, share the code, and download on the other side.</p>
+
+          <hr class="divider" />
+          <h2>Frequently Asked Questions</h2>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What is the maximum file size I can upload? <span>＋</span></div>
+            <div class="faq-a">You can upload up to 3 GB total per session. This means you can upload a single 3 GB file, or multiple smaller files that together do not exceed the 3 GB limit.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Do I need to create an account? <span>＋</span></div>
+            <div class="faq-a">No. ShareMeWeb Vault is completely account-free. Just open the page, drop your file, and upload. No registration, no email verification, no personal data required.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">How long are files stored? <span>＋</span></div>
+            <div class="faq-a">Files are stored according to the expiry time you choose at upload: 1 hour, 24 hours, or 7 days. After that, the file and its metadata are automatically and permanently deleted from our servers.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">What file types are supported? <span>＋</span></div>
+            <div class="faq-a">All file types are supported — documents, images, videos, audio files, zip archives, executables, design files, code packages, and anything else. There are no restrictions on file type.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Can I upload multiple files at once? <span>＋</span></div>
+            <div class="faq-a">Yes. You can select and upload multiple files at once. They will all be stored under the same 10-digit access code, so the recipient gets all files with a single code.</div>
+          </div>
+          <div class="faq-item">
+            <div class="faq-q" onclick="toggleFaq(this)">Is my upload private? <span>＋</span></div>
+            <div class="faq-a">Your file is accessible only to people who have your 10-digit code. With the optional password feature enabled, they also need the password. Files are not publicly indexed or searchable. Only someone with your specific code can find or download your file.</div>
+          </div>
+        </div>
+        <!-- ═══ END EXTENDED CONTENT ═══ -->
+
+      </div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
+
+  <script>
+  // ═══════════════════════════════════════════════════════
+  //  STORJ TURBO CONFIG
+  // ═══════════════════════════════════════════════════════
+  const STORJ_CONFIG = {
+    accessKey: 'juut67lhh2shmo63mxdx5c44xuya',
+    secretKey: 'j3uiryu2g25pi5rgt34lgwlwvfo5ptskp3cmv7nqngm655pflxm6w',
+    bucket: 'sharemeweb-vault23',
+    endpoint: 'https://gateway.ap1.storjshare.io',
+    region: 'ap1',
+    cdnBase: 'https://files.sharemeweb.com',
+  }
+
+  const STORJ_MAX_BYTES = 3 * 1024 * 1024 * 1024;
+  const CHUNK_SIZE = 5 * 1024 * 1024;
+  const CONCURRENCY = 3;
+
+  const DBS = [{ url: 'https://zptxcmommymnzlzlzaht.supabase.co', key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwdHhjbW9tbXltbnpsemx6YWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzODE2NzEsImV4cCI6MjA4ODk1NzY3MX0.Z7XmGV8D0eliKan7oNasipcqpvAz7Pk_9J08AZB7O0Y' }];
+  const sbClient = window.supabase.createClient(DBS[0].url, DBS[0].key);
+
+  let vPickedFiles = [], vCurCode = null, vRetRecord = null;
+
+  async function _hmac(key, data) {
+    const k = typeof key === 'string' ? new TextEncoder().encode(key) : key;
+    const ck = await crypto.subtle.importKey('raw', k, { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+    return new Uint8Array(await crypto.subtle.sign('HMAC', ck, new TextEncoder().encode(data)));
+  }
+  async function _sha256hex(data) {
+    const buf = data instanceof ArrayBuffer ? data : (data instanceof Uint8Array ? data.buffer : new TextEncoder().encode(data).buffer);
+    const h = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  function _hex(buf) { return Array.from(buf).map(b => b.toString(16).padStart(2, '0')).join(''); }
+
+  async function getV4Auth(method, path, query, amzDate, dateStamp, payloadHash) {
+    const { accessKey, secretKey, endpoint, region } = STORJ_CONFIG;
+    const host = new URL(endpoint).host;
+    const signedHeaders = 'host;x-amz-content-sha256;x-amz-date';
+    const canonicalRequest = [method, path, query, `host:${host}\nx-amz-content-sha256:${payloadHash}\nx-amz-date:${amzDate}\n`, signedHeaders, payloadHash].join('\n');
+    const scope = `${dateStamp}/${region}/s3/aws4_request`;
+    const stringToSign = ['AWS4-HMAC-SHA256', amzDate, scope, await _sha256hex(canonicalRequest)].join('\n');
+    const kDate = await _hmac('AWS4' + secretKey, dateStamp);
+    const kRegion = await _hmac(kDate, region);
+    const kService = await _hmac(kRegion, 's3');
+    const kSign = await _hmac(kService, 'aws4_request');
+    const sig = _hex(await _hmac(kSign, stringToSign));
+    return `AWS4-HMAC-SHA256 Credential=${accessKey}/${scope}, SignedHeaders=${signedHeaders}, Signature=${sig}`;
+  }
+
+  async function storjUploadMultipart(file, s3Key, onProgress) {
+    const { bucket, endpoint } = STORJ_CONFIG;
+    const initUrl = `${endpoint}/${bucket}/${s3Key}?uploads`;
+    const amzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+    const dateStamp = amzDate.slice(0, 8);
+    const authInit = await getV4Auth('POST', `/${bucket}/${s3Key}`, 'uploads=', amzDate, dateStamp, 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855');
+    
+    const initResp = await fetch(initUrl, { method: 'POST', headers: { 'x-amz-date': amzDate, 'Authorization': authInit, 'x-amz-content-sha256': 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855' } });
+    const initXml = await initResp.text();
+    const uploadId = initXml.match(/<UploadId>(.*?)<\/UploadId>/)[1];
+
+    const numParts = Math.ceil(file.size / CHUNK_SIZE);
+    const completedParts = [];
+    let uploadedBytes = 0;
+    const queue = Array.from({ length: numParts }, (_, i) => i + 1);
+
+    const uploadNext = async () => {
+      while (queue.length > 0) {
+        const partNum = queue.shift();
+        const start = (partNum - 1) * CHUNK_SIZE;
+        const end = Math.min(start + CHUNK_SIZE, file.size);
+        const chunk = file.slice(start, end);
+        const buf = await chunk.arrayBuffer();
+        const hash = await _sha256hex(buf);
+        const pAmzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+        const pAuth = await getV4Auth('PUT', `/${bucket}/${s3Key}`, `partNumber=${partNum}&uploadId=${uploadId}`, pAmzDate, pAmzDate.slice(0,8), hash);
+
+        const res = await fetch(`${endpoint}/${bucket}/${s3Key}?partNumber=${partNum}&uploadId=${uploadId}`, { method: 'PUT', headers: { 'x-amz-date': pAmzDate, 'Authorization': pAuth, 'x-amz-content-sha256': hash }, body: buf });
+        completedParts.push({ PartNumber: partNum, ETag: res.headers.get('ETag') });
+        uploadedBytes += chunk.size;
+        onProgress(uploadedBytes);
+      }
+    };
+
+    await Promise.all(Array.from({ length: CONCURRENCY }, uploadNext));
+
+    completedParts.sort((a,b) => a.PartNumber - b.PartNumber);
+    let xml = '<CompleteMultipartUpload>' + completedParts.map(p => `<Part><PartNumber>${p.PartNumber}</PartNumber><ETag>${p.ETag}</ETag></Part>`).join('') + '</CompleteMultipartUpload>';
+    const fAmzDate = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, '');
+    const fHash = await _sha256hex(xml);
+    const fAuth = await getV4Auth('POST', `/${bucket}/${s3Key}`, `uploadId=${uploadId}`, fAmzDate, fAmzDate.slice(0,8), fHash);
+    await fetch(`${endpoint}/${bucket}/${s3Key}?uploadId=${uploadId}`, { method: 'POST', headers: { 'x-amz-date': fAmzDate, 'Authorization': fAuth, 'x-amz-content-sha256': fHash }, body: xml });
+
+    return `${STORJ_CONFIG.cdnBase}/${s3Key}`;
+  }
+
+  // ── Fixed tab switcher (no longer relies on `event`) ──
+  function vSwitchTab(t, btn) {
+    document.getElementById('vPanelUpload').classList.toggle('active', t === 'upload');
+    document.getElementById('vPanelRetrieve').classList.toggle('active', t === 'retrieve');
+    document.querySelectorAll('.vault-tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  document.getElementById('vFileInput').addEventListener('change', e => {
+    vPickedFiles = Array.from(e.target.files);
+    const list = document.getElementById('vFileList');
+    list.innerHTML = vPickedFiles.map(f => `<div class="v-file-item"><b>${f.name}</b> (${(f.size/1024/1024).toFixed(2)} MB)</div>`).join('');
+    document.getElementById('vUpBtn').disabled = vPickedFiles.length === 0;
+  });
+
+  async function vDoUpload() {
+    const btn = document.getElementById('vUpBtn');
+    const fill = document.getElementById('vProgFill');
+    const pct = document.getElementById('vProgPct');
+    const ptxt = document.getElementById('vProgTxt');
+    
+    btn.disabled = true;
+    document.getElementById('vProg').classList.add('show');
+    
+    try {
+      const code = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+      const totalBytes = vPickedFiles.reduce((s,f) => s+f.size, 0);
+      if(totalBytes > STORJ_MAX_BYTES) throw new Error("Exceeds 3GB limit");
+
+      const urls = [];
+      for(let f of vPickedFiles) {
+        ptxt.textContent = `Turbo Uploading: ${f.name}`;
+        const key = `${code}/${f.name.replace(/[^a-z0-9.]/gi, '_')}`;
+        const url = await storjUploadMultipart(f, key, (bytes) => {
+            const p = Math.round((bytes/f.size)*100);
+            fill.style.width = p + '%';
+            pct.textContent = p + '%';
+        });
+        urls.push({name: f.name, url: url, size: f.size, type: f.type});
+      }
+
+      await sbClient.from('files').insert([{
+        code, filename: urls[0].name, file_url: urls[0].url, all_files: JSON.stringify(urls),
+        filesize: totalBytes, filetype: urls[0].type, max_downloads: parseInt(document.getElementById('vMaxDl').value)||1,
+        password: document.getElementById('vPassword').value || null,
+        expires_at: new Date(Date.now() + parseInt(document.getElementById('vExpiry').value)*3600000).toISOString()
+      }]);
+
+      vCurCode = code;
+      document.getElementById('vGenCode').textContent = code;
+      document.getElementById('vUploadForm').style.display = 'none';
+      document.getElementById('vResult').classList.add('show');
+    } catch(err) {
+      alert(err.message);
+      btn.disabled = false;
+    }
+  }
+
+  function vOnCodeType() {
+    document.getElementById('vSrchBtn').disabled = document.getElementById('vCodeIn').value.length !== 10;
+  }
+
+  async function vDoSearch() {
+    const code = document.getElementById('vCodeIn').value;
+    const {data} = await sbClient.from('files').select('*').eq('code', code).maybeSingle();
+    if(data) {
+        vRetRecord = data;
+        document.getElementById('vFoundName').textContent = data.filename;
+        document.getElementById('vFoundSize').textContent = (data.filesize/1024/1024).toFixed(2) + " MB";
+        document.getElementById('vFileFound').classList.add('show');
+    } else {
+        alert("File not found");
+    }
+  }
+
+  function vDoDownload() {
+    window.open(vRetRecord.file_url, '_blank');
+  }
+
+  function vCopyCode() {
+    navigator.clipboard.writeText(vCurCode);
+    alert("Code copied!");
+  }
+
+  function toggleFaq(el) {
+    const ans = el.nextElementSibling;
+    const icon = el.querySelector('span');
+    const open = ans.classList.toggle('open');
+    icon.textContent = open ? '－' : '＋';
+  }
+  </script>
+</body>
+</html>
